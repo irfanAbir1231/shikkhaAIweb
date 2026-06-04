@@ -1,24 +1,40 @@
 'use client';
-import { Card, CardContent } from '@/components/ui/card';
-import { Construction } from 'lucide-react';
+
+import { FocusSessionManager } from '@/components/focus/FocusSessionManager';
+import { GardenGallery } from '@/components/focus/GardenGallery';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Timer, Flower2 } from 'lucide-react';
 
 export default function FocusSessionPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Focus Session</h1>
-        <p className="text-muted-foreground">Pomodoro-style study sessions</p>
+    <div className="container max-w-5xl py-8 space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">Focus Session</h1>
+        <p className="text-muted-foreground">
+          Stay in the zone, grow your garden, and track your focus integrity.
+        </p>
       </div>
 
-      <Card>
-        <CardContent className="p-12 text-center">
-          <Construction className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">Focus Session feature coming soon!</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            This feature will include a Pomodoro timer, plant growth gamification, and anti-cheat tab detection.
-          </p>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="session" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="session" className="gap-2">
+            <Timer className="w-4 h-4" />
+            Focus Session
+          </TabsTrigger>
+          <TabsTrigger value="garden" className="gap-2">
+            <Flower2 className="w-4 h-4" />
+            My Garden
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="session" className="mt-6">
+          <FocusSessionManager />
+        </TabsContent>
+
+        <TabsContent value="garden" className="mt-6">
+          <GardenGallery />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
