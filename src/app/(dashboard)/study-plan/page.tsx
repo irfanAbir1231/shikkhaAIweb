@@ -394,7 +394,7 @@ function StudyPlanDetailDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
         <div className="p-6 pb-2">
           <DialogHeader>
             <div className="flex items-start justify-between">
@@ -472,7 +472,7 @@ function StudyPlanDetailDialog({
         <Separator />
 
         {/* Tasks for Active Day */}
-        <ScrollArea className="flex-1 max-h-[400px]">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-6 pt-4 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">
