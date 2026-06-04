@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReactQueryProvider } from "@/lib/api/client";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/components/providers/auth-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,12 +21,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ReactQueryProvider>
-          <TooltipProvider>
-            {children}
-            <Toaster position="top-right" />
-          </TooltipProvider>
-        </ReactQueryProvider>
+        <AuthProvider>
+          <ReactQueryProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster position="top-right" />
+            </TooltipProvider>
+          </ReactQueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );

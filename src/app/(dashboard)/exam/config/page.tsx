@@ -63,12 +63,13 @@ export default function ExamConfigPage() {
 
     setIsLoading(true);
     try {
+      const { time_limit: _, ...examData } = data;
       const res = await fetch('/api/proxy/exam/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           student_id: user.id,
-          ...data,
+          ...examData,
         }),
       });
 
