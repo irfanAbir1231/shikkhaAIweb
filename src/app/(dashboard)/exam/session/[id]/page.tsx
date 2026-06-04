@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { ExamSessionProtector } from '@/components/exam/exam-session-protector';
 import { formatDuration } from '@/lib/utils/formatters';
 import {
   ChevronLeft,
@@ -30,12 +31,12 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
     timeRemaining,
     isSubmitted,
     tabSwitchCount,
+    isTimerPaused,
     setAnswer,
     nextQuestion,
     prevQuestion,
     goToQuestion,
     decrementTimer,
-    incrementTabSwitch,
     submitExam,
   } = useExamStore();
 
@@ -46,14 +47,16 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
     }
   }, [exam, router]);
 
-  // Timer
+  // Timer — pauses when a tab-switch warning is active
   useEffect(() => {
     if (!exam || isSubmitted) return;
     const interval = setInterval(() => {
-      decrementTimer();
+      if (!isTimerPaused) {
+        decrementTimer();
+      }
     }, 1000);
     return () => clearInterval(interval);
-  }, [exam, isSubmitted, decrementTimer]);
+  }, [exam, isSubmitted, isTimerPaused, decrementTimer]);
 
   // Auto-submit when time runs out
   useEffect(() => {
@@ -61,31 +64,6 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
       handleSubmit();
     }
   }, [timeRemaining, isSubmitted]);
-
-  // Anti-cheat: tab switch detection
-  const handleVisibilityChange = useCallback(() => {
-    if (document.hidden && !isSubmitted) {
-      incrementTabSwitch();
-      const count = tabSwitchCount + 1;
-      if (count === 1) {
-        toast.warning('Warning: Do not switch tabs during the exam!', {
-          duration: 5000,
-        });
-      } else if (count === 2) {
-        toast.error('Final warning: One more tab switch will auto-submit your exam!', {
-          duration: 5000,
-        });
-      } else if (count >= 3) {
-        toast.error('Auto-submitting exam due to multiple tab switches...');
-        handleSubmit();
-      }
-    }
-  }, [isSubmitted, tabSwitchCount, incrementTabSwitch]);
-
-  useEffect(() => {
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [handleVisibilityChange]);
 
   const handleSubmit = async () => {
     if (!exam || !user || isSubmitted) return;
@@ -104,6 +82,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
           student_id: user.id,
           exam_id: exam.exam_id,
           answers: answersArray,
+          tab_switches: tabSwitchCount,
         }),
       });
 
@@ -128,6 +107,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
   const answeredCount = Object.keys(answers).length;
 
   return (
+    <ExamSessionProtector onAutoSubmit={handleSubmit} enabled={!isSubmitted}>
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header */}
       <header className="h-14 border-b flex items-center justify-between px-4 lg:px-6">
@@ -306,5 +286,6 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
         </aside>
       </div>
     </div>
+    </ExamSessionProtector>
   );
 }

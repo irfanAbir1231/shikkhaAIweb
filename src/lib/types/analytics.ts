@@ -148,3 +148,34 @@ export interface TopicsData {
   total_topics: number;
   completed_topics: number;
 }
+
+// ── Topics Mastery Dashboard (nested: Subject → Chapter → Topic) ──
+
+export interface MasteryTopic {
+  id: string;
+  name: string;
+  is_completed: boolean;
+  is_attempted: boolean;
+  last_score: number | null;
+}
+
+export interface MasteryChapter {
+  chapter_name: string;
+  overall_completion_percentage: number;
+  topics: MasteryTopic[];
+}
+
+export interface MasterySubject {
+  subject: string;
+  icon_name?: string;
+  total_topics: number;
+  completed_topics: number;
+  overall_completion_percentage: number;
+  chapters: MasteryChapter[];
+}
+
+export interface TopicsMasteryData {
+  subjects: MasterySubject[];
+  total_topics: number;
+  completed_topics: number;
+}

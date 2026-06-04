@@ -1,24 +1,33 @@
 'use client';
-import { Card, CardContent } from '@/components/ui/card';
-import { Construction } from 'lucide-react';
+
+import { SpacesGrid } from '@/components/spaces/spaces-grid';
+import { CreateSpaceButton } from '@/components/spaces/create-space-modal';
+import { useSpaces } from '@/lib/api/spaces';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export default function SpacesPage() {
+  const { data: spaces, isLoading, error } = useSpaces();
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message || 'Failed to load study spaces');
+    }
+  }, [error]);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Study Spaces</h1>
-        <p className="text-muted-foreground">Create spaces for your study materials</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Study Spaces</h1>
+          <p className="text-muted-foreground">
+            Organize your study materials and chat with AI about your documents
+          </p>
+        </div>
+        <CreateSpaceButton />
       </div>
 
-      <Card>
-        <CardContent className="p-12 text-center">
-          <Construction className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">Study Spaces feature coming soon!</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            This feature will let you upload PDFs, create topic-specific collections, and chat with AI about your documents.
-          </p>
-        </CardContent>
-      </Card>
+      <SpacesGrid spaces={spaces} isLoading={isLoading} />
     </div>
   );
 }

@@ -1,6 +1,18 @@
+export interface Chapter {
+  id: string;
+  name: string;
+  chapter_number?: number;
+}
+
+export interface Topic {
+  id: string;
+  name: string;
+}
+
 export interface ExamGenerateRequest {
   student_id: number;
   subject: string;
+  chapter: string;
   topic: string;
   class_level: string;
   difficulty: 'easy' | 'medium' | 'hard';
@@ -11,6 +23,7 @@ export interface ExamQuestion {
   id: string;
   type: 'mcq' | 'short_answer';
   topic: string;
+  subtopic?: string;
   prompt: string;
   options: string[];
   marks: number;
@@ -37,6 +50,7 @@ export interface ExamSubmitRequest {
   student_id: number;
   exam_id: string;
   answers: AnswerSubmission[];
+  tab_switches: number;
 }
 
 export interface McqFeedback {

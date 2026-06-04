@@ -8,6 +8,7 @@ interface ExamState {
   timeRemaining: number;
   isSubmitted: boolean;
   tabSwitchCount: number;
+  isTimerPaused: boolean;
 
   setExam: (exam: ExamResponse) => void;
   setAnswer: (questionId: string, answer: string) => void;
@@ -16,6 +17,7 @@ interface ExamState {
   goToQuestion: (index: number) => void;
   decrementTimer: () => void;
   incrementTabSwitch: () => void;
+  setTimerPaused: (value: boolean) => void;
   submitExam: () => void;
   reset: () => void;
 }
@@ -27,6 +29,7 @@ export const useExamStore = create<ExamState>()((set, get) => ({
   timeRemaining: 0,
   isSubmitted: false,
   tabSwitchCount: 0,
+  isTimerPaused: false,
 
   setExam: (exam) =>
     set({
@@ -36,6 +39,7 @@ export const useExamStore = create<ExamState>()((set, get) => ({
       timeRemaining: exam.questions.length * 2 * 60, // 2 min per question default
       isSubmitted: false,
       tabSwitchCount: 0,
+      isTimerPaused: false,
     }),
 
   setAnswer: (questionId, answer) =>
@@ -74,6 +78,8 @@ export const useExamStore = create<ExamState>()((set, get) => ({
       tabSwitchCount: state.tabSwitchCount + 1,
     })),
 
+  setTimerPaused: (value) => set({ isTimerPaused: value }),
+
   submitExam: () => set({ isSubmitted: true }),
 
   reset: () =>
@@ -84,5 +90,6 @@ export const useExamStore = create<ExamState>()((set, get) => ({
       timeRemaining: 0,
       isSubmitted: false,
       tabSwitchCount: 0,
+      isTimerPaused: false,
     }),
 }));

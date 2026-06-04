@@ -14,6 +14,7 @@ import {
   Timer,
   FolderOpen,
   BarChart3,
+  Users,
   Settings,
   LogOut,
   GraduationCap,
@@ -35,6 +36,7 @@ const navItems = [
   { href: '/focus-session', label: 'Focus Session', icon: Timer },
   { href: '/spaces', label: 'Spaces', icon: FolderOpen },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/teacher', label: 'Teacher', icon: Users },
 ];
 
 export function Sidebar() {
