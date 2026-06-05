@@ -187,6 +187,7 @@ function ExamConfigForm() {
 
   const urlSubject = searchParams.get('subject') || '';
   const urlTopic = searchParams.get('topic') || '';
+  const urlChapter = searchParams.get('chapter') || '';
 
   const {
     register,
@@ -221,6 +222,23 @@ function ExamConfigForm() {
     error: chaptersError,
   } = useChapters(classLevel, subject);
 
+  // Auto-populate chapter and topic when search query params are provided
+  useEffect(() => {
+    if (chapters && urlChapter && !watch('chapter')) {
+      const matched = chapters.find(
+        (ch: any) =>
+          ch.id === urlChapter ||
+          ch.name.toLowerCase() === urlChapter.toLowerCase()
+      );
+      if (matched) {
+        setValue('chapter', matched.id);
+        if (urlTopic) {
+          setValue('topic', urlTopic);
+        }
+      }
+    }
+  }, [chapters, urlChapter, urlTopic, setValue, watch]);
+
   const onSubmit = async (data: ConfigForm) => {
     if (!user) {
       toast.error('Please log in first');
@@ -229,7 +247,8 @@ function ExamConfigForm() {
 
     setIsLoading(true);
     try {
-      const { time_limit: _, ...examData } = data;
+      // Omit time_limit and chapter from payload, as the backend StrictRequestModel forbids extra fields
+      const { time_limit: _, chapter: __, ...examData } = data;
       const res = await fetch('/api/proxy/exam/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

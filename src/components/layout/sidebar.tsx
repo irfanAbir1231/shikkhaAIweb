@@ -119,11 +119,13 @@ export function MobileSidebar() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger>
-        <Button variant="ghost" size="icon" className="lg:hidden">
-          <Menu className="w-5 h-5" />
-        </Button>
-      </SheetTrigger>
+      <SheetTrigger
+        render={
+          <Button variant="ghost" size="icon" className="lg:hidden">
+            <Menu className="w-5 h-5" />
+          </Button>
+        }
+      />
       <SheetContent side="left" className="w-64 p-0">
         <div className="p-6">
           <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>

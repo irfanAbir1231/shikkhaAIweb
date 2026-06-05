@@ -157,6 +157,9 @@ export interface MasteryTopic {
   is_completed: boolean;
   is_attempted: boolean;
   last_score: number | null;
+  availability_status?: 'available' | 'locked' | 'queued';
+  page_start?: number;
+  page_end?: number;
 }
 
 export interface MasteryChapter {

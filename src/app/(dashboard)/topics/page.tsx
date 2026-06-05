@@ -1,19 +1,25 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { useTopicsMastery } from '@/hooks/use-topics-mastery';
+import { useTopicsMastery, useAvailableTopics } from '@/hooks/use-topics-mastery';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { SubjectCard } from './components/subject-card';
 import { TopicsSkeleton } from './components/topics-skeleton';
 import { AlertCircle, RotateCcw, BookOpen, Trophy } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function TopicsMasteryPage() {
   const { user } = useAuthStore();
   const studentId = user?.id;
+  const [activeTab, setActiveTab] = useState<'curriculum' | 'textbook'>('curriculum');
 
-  const { data, isLoading, error, refetch } = useTopicsMastery(studentId);
+  const curriculumResult = useTopicsMastery(studentId);
+  const textbookResult = useAvailableTopics(studentId);
+
+  const { data, isLoading, error, refetch } = activeTab === 'curriculum' ? curriculumResult : textbookResult;
 
   // Error state
   if (error) {
@@ -46,27 +52,71 @@ export default function TopicsMasteryPage() {
     );
   }
 
+  const availableCount =
+    data?.subjects?.reduce(
+      (acc: number, s: any) =>
+        acc +
+        s.chapters.reduce(
+          (accCh: number, ch: any) =>
+            accCh +
+            ch.topics.filter((t: any) => t.availability_status === 'available').length,
+          0
+        ),
+      0
+    ) || 0;
+
   const overallPercentage =
     data && data.total_topics > 0
-      ? Math.round((data.completed_topics / data.total_topics) * 100)
+      ? Math.round(
+          ((activeTab === 'curriculum' ? data.completed_topics : availableCount) /
+            data.total_topics) *
+            100
+        )
       : 0;
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Topics Mastery</h1>
           <p className="text-muted-foreground">Track your progress across all subjects and chapters</p>
         </div>
-        {data && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <BookOpen className="w-4 h-4" />
-            <span>
-              {data.total_topics} topic{data.total_topics !== 1 ? 's' : ''} total
-            </span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          {/* Tab Switcher */}
+          <div className="flex bg-muted p-1 rounded-lg border w-fit">
+            <button
+              onClick={() => setActiveTab('curriculum')}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                activeTab === 'curriculum'
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Curriculum Mastery
+            </button>
+            <button
+              onClick={() => setActiveTab('textbook')}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+                activeTab === 'textbook'
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Textbook Available Topics
+            </button>
           </div>
-        )}
+          {data && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground sm:self-center">
+              <BookOpen className="w-4 h-4" />
+              <span>
+                {data.total_topics} topic{data.total_topics !== 1 ? 's' : ''} total
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Overall Progress Card */}
@@ -78,12 +128,16 @@ export default function TopicsMasteryPage() {
                 <Trophy className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Overall Progress</h3>
+                <h3 className="text-lg font-semibold">
+                  {activeTab === 'curriculum' ? 'Overall Progress' : 'Textbook Availability'}
+                </h3>
                 {isLoading ? (
                   <p className="text-sm text-muted-foreground">Loading...</p>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    {data?.completed_topics || 0} of {data?.total_topics || 0} topics mastered
+                    {activeTab === 'curriculum'
+                      ? `${data?.completed_topics || 0} of ${data?.total_topics || 0} topics mastered`
+                      : `${availableCount} of ${data?.total_topics || 0} topics available for exam`}
                   </p>
                 )}
               </div>
@@ -121,7 +175,7 @@ export default function TopicsMasteryPage() {
         </Card>
       ) : (
         <div className="space-y-5">
-          {data.subjects.map((subject) => (
+          {data.subjects.map((subject: any) => (
             <SubjectCard key={subject.subject} subject={subject} />
           ))}
         </div>
