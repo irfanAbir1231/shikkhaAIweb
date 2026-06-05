@@ -1,13 +1,9 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-export const GRADE_LEVELS = ['6', '7', '8', '9', '10', '11', '12'];
+export const GRADE_LEVELS = ['8'];
 
 export const SUBJECTS = [
   'science',
-  'math',
-  'mathematics',
-  'english',
-  'bangla',
   'history',
   'geography',
   'physics',
