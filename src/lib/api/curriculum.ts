@@ -31,6 +31,8 @@ export function useChapters(classLevel: string | undefined, subject: string | un
     queryKey: ['chapters', classLevel, subject],
     queryFn: () => fetchChapters(classLevel!, subject!),
     enabled: !!classLevel && !!subject,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 }
 
@@ -44,5 +46,7 @@ export function useTopics(
     queryKey: ['topics', classLevel, subject, chapter, search],
     queryFn: () => fetchTopics(classLevel!, subject!, chapter!, search),
     enabled: !!classLevel && !!subject && !!chapter,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 }
