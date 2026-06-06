@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useExamStore } from '@/lib/stores/exam-store';
+import { useFocusGardenStore } from '@/lib/stores/focus-garden-store';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -68,7 +69,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
     }
   }, [timeRemaining, isSubmitted]);
 
-  const handleSubmit = async () => {
+  const doSubmit = async (awardTree: boolean) => {
     if (!exam || !user || isSubmitted) return;
     submitExam();
 
@@ -99,6 +100,12 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
       // Store the full result so the result page can display it
       setLastResult(result.data);
 
+      // Award exam tree if student completed the full exam
+      if (awardTree) {
+        useFocusGardenStore.getState().awardExamTree(exam.topic);
+        toast.success('You earned a Scholar Tree for completing the exam!');
+      }
+
       // Invalidate related queries so dashboard/analytics/notes refresh
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
@@ -112,6 +119,9 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
       toast.error('Failed to submit exam');
     }
   };
+
+  const handleSubmit = () => doSubmit(false);
+  const handleCompleteExam = () => doSubmit(true);
 
   if (!exam) return null;
 
@@ -233,7 +243,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
             </Button>
 
             {isLastQuestion ? (
-              <Button onClick={handleSubmit} variant="default">
+              <Button onClick={handleCompleteExam} variant="default">
                 Submit Exam
                 <Send className="w-4 h-4 ml-1" />
               </Button>

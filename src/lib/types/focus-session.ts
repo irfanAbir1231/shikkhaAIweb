@@ -30,6 +30,7 @@ export interface PlantState {
   unlockedAt: string; // ISO date
   sessionCount: number; // how many completed sessions contributed to growth
   withered: boolean;
+  source?: 'focus' | 'exam';
 }
 
 /** A single focus session attempt */

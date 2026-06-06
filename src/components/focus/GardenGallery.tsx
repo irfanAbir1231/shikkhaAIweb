@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useFocusGardenStore } from '@/lib/stores/focus-garden-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sprout, TreePine, TreeDeciduous, Skull, Flame } from 'lucide-react';
+import { Sprout, TreePine, TreeDeciduous, Skull, Flame, BookOpen, FileQuestion } from 'lucide-react';
 
 const STAGE_ICON_MAP = {
   seed: Sprout,
@@ -82,9 +82,17 @@ export function GardenGallery() {
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">{plant.name}</CardTitle>
-                      <Badge variant={isWithered ? 'destructive' : 'secondary'}>
-                        {plant.type}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        {plant.source === 'exam' && (
+                          <FileQuestion className="w-3.5 h-3.5 text-orange-500" />
+                        )}
+                        {plant.source !== 'exam' && (
+                          <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
+                        )}
+                        <Badge variant={isWithered ? 'destructive' : 'secondary'}>
+                          {plant.type}
+                        </Badge>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">

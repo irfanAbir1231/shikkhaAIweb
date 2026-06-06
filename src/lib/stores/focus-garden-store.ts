@@ -4,13 +4,20 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { GardenProfile, PlantState, FocusSession } from '@/lib/types/focus-session';
 
-const PLANT_TEMPLATES: Omit<PlantState, 'id' | 'unlockedAt' | 'sessionCount' | 'withered'>[] = [
+const PLANT_TEMPLATES: Omit<PlantState, 'id' | 'unlockedAt' | 'sessionCount' | 'withered' | 'source'>[] = [
   { name: 'Sunflower', type: 'seed', stage: 0, color: 'amber' },
   { name: 'Rose', type: 'seed', stage: 0, color: 'rose' },
   { name: 'Bamboo', type: 'seed', stage: 0, color: 'emerald' },
   { name: 'Lavender', type: 'seed', stage: 0, color: 'violet' },
   { name: 'Cactus', type: 'seed', stage: 0, color: 'lime' },
   { name: 'Cherry Blossom', type: 'seed', stage: 0, color: 'pink' },
+];
+
+const EXAM_PLANT_TEMPLATES: Omit<PlantState, 'id' | 'unlockedAt' | 'sessionCount' | 'withered' | 'source'>[] = [
+  { name: 'Scholar Oak', type: 'mature', stage: 3, color: 'orange' },
+  { name: 'Wisdom Pine', type: 'mature', stage: 3, color: 'teal' },
+  { name: 'Victory Maple', type: 'mature', stage: 3, color: 'red' },
+  { name: 'Knowledge Willow', type: 'mature', stage: 3, color: 'cyan' },
 ];
 
 function getNextPlantType(unlocked: string[]): string | null {
@@ -46,6 +53,7 @@ interface FocusGardenState {
   startPlant: (session: FocusSession) => PlantState;
   completeSession: (session: FocusSession) => void;
   abortSession: (session: FocusSession) => void;
+  awardExamTree: (examName?: string) => void;
   resetGarden: () => void;
 }
 
@@ -110,6 +118,7 @@ export const useFocusGardenStore = create<FocusGardenState>()(
             unlockedAt: new Date().toISOString(),
             sessionCount: 0,
             withered: false,
+            source: 'focus',
           };
         }
 
@@ -170,6 +179,32 @@ export const useFocusGardenStore = create<FocusGardenState>()(
             plants: newPlants,
           },
           currentPlant: null,
+        });
+      },
+
+      awardExamTree: (examName) => {
+        const { profile } = get();
+        const examPlantCount = profile.plants.filter((p) => p.source === 'exam').length;
+        const template = EXAM_PLANT_TEMPLATES[examPlantCount % EXAM_PLANT_TEMPLATES.length];
+
+        const tree: PlantState = {
+          id: `exam_tree_${Date.now()}`,
+          name: examName ? `${examName} — ${template.name}` : template.name,
+          type: 'mature',
+          stage: 3,
+          color: template.color,
+          unlockedAt: new Date().toISOString(),
+          sessionCount: 1,
+          withered: false,
+          source: 'exam',
+        };
+
+        set({
+          profile: {
+            ...profile,
+            totalSessionsCompleted: profile.totalSessionsCompleted + 1,
+            plants: [...profile.plants, tree],
+          },
         });
       },
 
