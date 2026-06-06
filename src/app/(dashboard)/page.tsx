@@ -19,13 +19,11 @@ import {
   Timer,
   ArrowRight,
   Lightbulb,
-  Target,
 } from 'lucide-react';
 
 const quickActions = [
   { href: '/study-companion', label: 'Study Companion', icon: Brain, color: 'bg-blue-500' },
   { href: '/exam/config', label: 'Take Exam', icon: FileQuestion, color: 'bg-green-500' },
-  { href: '/practice-exam', label: 'Adaptive Practice', icon: Target, color: 'bg-red-500' },
   { href: '/analytics', label: 'Analytics', icon: BookOpen, color: 'bg-purple-500' },
 ];
 
