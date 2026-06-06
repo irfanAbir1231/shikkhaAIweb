@@ -17,6 +17,10 @@ export async function DELETE(request: NextRequest) {
   return handleProxy(request, 'DELETE');
 }
 
+export async function PATCH(request: NextRequest) {
+  return handleProxy(request, 'PATCH');
+}
+
 async function handleProxy(request: NextRequest, method: string) {
   try {
     const token = request.cookies.get('token')?.value;
