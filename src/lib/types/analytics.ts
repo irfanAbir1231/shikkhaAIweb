@@ -83,7 +83,7 @@ export interface ImprovementHistoryPoint {
   date: string;
   overall_score: number;
   topic_scores: Record<string, number>;
-  exam_id: string;
+  exam_id: number;
 }
 
 export interface DailyActivity {

@@ -32,7 +32,7 @@ export interface ExamQuestion {
 }
 
 export interface ExamResponse {
-  exam_id: string;
+  exam_id: number;
   student_id: number;
   subject: string;
   topic: string;
@@ -48,7 +48,7 @@ export interface AnswerSubmission {
 
 export interface ExamSubmitRequest {
   student_id: number;
-  exam_id: string;
+  exam_id: number;
   answers: AnswerSubmission[];
   tab_switches: number;
 }
@@ -88,7 +88,7 @@ export interface GeneratedNote {
 export interface ExamSubmitResponse {
   attempt_id: number;
   student_id: number;
-  exam_id: string;
+  exam_id: number;
   score_percentage: number;
   mcq_correct: number;
   mcq_total: number;
@@ -100,7 +100,7 @@ export interface ExamSubmitResponse {
 }
 
 export interface ExamSummaryResponse {
-  exam_id: string;
+  exam_id: number;
   student_id: number;
   subject: string;
   topic: string;
@@ -112,7 +112,7 @@ export interface ExamSummaryResponse {
 
 export interface AttemptResponse {
   attempt_id: number;
-  exam_id: string;
+  exam_id: number;
   student_id: number;
   score_percentage: number;
   mcq_correct: number;
