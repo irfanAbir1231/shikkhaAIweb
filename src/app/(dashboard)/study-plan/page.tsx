@@ -7,18 +7,27 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useStudyPlanStore } from '@/lib/stores/study-plan-store';
-import { StudyPlan, StudyPlanTask, DailySchedule } from '@/lib/types/study-plan';
+import { StudyPlan, StudyPlanTask, DailySchedule, PlanSelection } from '@/lib/types/study-plan';
+import { useChapters, useTopics } from '@/lib/api/curriculum';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SUBJECTS, GRADE_LEVELS } from '@/lib/utils/constants';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SUBJECTS } from '@/lib/utils/constants';
 import {
   Calendar,
   Plus,
@@ -28,20 +37,17 @@ import {
   Target,
   CheckCircle2,
   Circle,
-  GraduationCap,
   Brain,
   Sparkles,
   X,
-  ChevronRight,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 const generateSchema = z.object({
-  subject: z.string().min(1, 'Subject is required'),
-  topics: z.string().min(1, 'At least one topic is required'),
   goal: z.string().min(1, 'Goal is required'),
-  total_days: z.number().min(7).max(90),
+  deadline: z.string().min(1, 'Deadline is required'),
   daily_hours: z.number().min(1).max(8),
-  class_level: z.string().min(1, 'Class level is required'),
 });
 
 type GenerateForm = z.infer<typeof generateSchema>;
@@ -67,12 +73,43 @@ const TASK_TYPE_ICONS: Record<string, typeof Brain> = {
   break: Clock,
 };
 
+function getMinDeadline(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return d.toISOString().split('T')[0];
+}
+
 export default function StudyPlanPage() {
   const { user } = useAuthStore();
   const { plans, generatePlan, deletePlan } = useStudyPlanStore();
   const [generateOpen, setGenerateOpen] = useState(false);
   const [detailPlan, setDetailPlan] = useState<StudyPlan | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Multi-selection state
+  const [selections, setSelections] = useState<PlanSelection[]>([]);
+  const [currentSubject, setCurrentSubject] = useState<string>('');
+  const [currentChapter, setCurrentChapter] = useState<string>('');
+  const [currentTopic, setCurrentTopic] = useState<string>('');
+
+  const classLevel = user?.grade_level || '8';
+
+  const {
+    data: chapters,
+    isLoading: chaptersLoading,
+    error: chaptersError,
+  } = useChapters(classLevel, currentSubject || undefined);
+
+  const {
+    data: topics,
+    isLoading: topicsLoading,
+    error: topicsError,
+  } = useTopics(
+    classLevel,
+    currentSubject || undefined,
+    currentChapter || undefined,
+    ''
+  );
 
   const {
     register,
@@ -84,17 +121,52 @@ export default function StudyPlanPage() {
   } = useForm<GenerateForm>({
     resolver: zodResolver(generateSchema),
     defaultValues: {
-      subject: 'science',
-      topics: '',
       goal: 'exam_prep',
-      total_days: 14,
+      deadline: getMinDeadline(),
       daily_hours: 2,
-      class_level: user?.grade_level || '8',
     },
   });
 
-  const totalDays = watch('total_days');
   const dailyHours = watch('daily_hours');
+  const deadline = watch('deadline');
+
+  const handleAddSelection = () => {
+    if (!currentSubject) {
+      toast.error('Please select a subject');
+      return;
+    }
+
+    const chapterName = currentChapter
+      ? chapters?.find((ch) => ch.id === currentChapter)?.name
+      : undefined;
+
+    const topicName = currentTopic
+      ? topics?.find((t) => t.id.toString() === currentTopic)?.name
+      : undefined;
+
+    const newSelection: PlanSelection = {
+      id: `sel_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      subject: currentSubject,
+      chapter: currentChapter || undefined,
+      chapterName: chapterName || undefined,
+      topic: topicName || undefined,
+    };
+
+    setSelections((prev) => [...prev, newSelection]);
+    setCurrentSubject('');
+    setCurrentChapter('');
+    setCurrentTopic('');
+  };
+
+  const handleRemoveSelection = (id: string) => {
+    setSelections((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleSelectSubject = (subject: string) => {
+    setCurrentSubject(subject);
+    setCurrentChapter('');
+    setCurrentTopic('');
+  };
 
   const onSubmit = async (data: GenerateForm) => {
     if (!user) {
@@ -102,30 +174,36 @@ export default function StudyPlanPage() {
       return;
     }
 
+    if (selections.length === 0) {
+      toast.error('Please add at least one subject selection');
+      return;
+    }
+
+    // Validate deadline is at least 7 days from today
+    const minDate = new Date(getMinDeadline());
+    const chosenDate = new Date(data.deadline);
+    if (chosenDate < minDate) {
+      toast.error('Deadline must be at least 7 days from today');
+      return;
+    }
+
     setIsGenerating(true);
     try {
-      const topics = data.topics
-        .split(/[,\n]+/)
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0);
-
-      if (topics.length === 0) {
-        toast.error('Please enter at least one topic');
-        return;
-      }
-
       const plan = generatePlan(user.id, {
-        subject: data.subject,
-        topics,
+        selections,
         goal: data.goal,
-        total_days: data.total_days,
+        deadline: data.deadline,
         daily_hours: data.daily_hours,
-        class_level: data.class_level,
+        class_level: classLevel,
       });
 
       toast.success('Study plan generated!');
       setGenerateOpen(false);
       reset();
+      setSelections([]);
+      setCurrentSubject('');
+      setCurrentChapter('');
+      setCurrentTopic('');
       setDetailPlan(plan);
     } catch (error) {
       toast.error('Failed to generate study plan');
@@ -147,6 +225,15 @@ export default function StudyPlanPage() {
     if (diff < 0) return 'Ended';
     if (diff === 0) return 'Ends today';
     return `${diff} days left`;
+  };
+
+  const selectionLabel = (sel: PlanSelection) => {
+    const parts = [
+      sel.subject.charAt(0).toUpperCase() + sel.subject.slice(1),
+      sel.chapterName,
+      sel.topic,
+    ].filter(Boolean);
+    return parts.join(' › ');
   };
 
   return (
@@ -252,40 +339,166 @@ export default function StudyPlanPage() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="space-y-2">
+            {/* Subject Selection Row */}
+            <div className="space-y-3">
               <Label>Subject</Label>
               <div className="flex flex-wrap gap-2">
                 {SUBJECTS.slice(0, 5).map((subject) => (
                   <Button
                     key={subject}
                     type="button"
-                    variant={watch('subject') === subject ? 'default' : 'outline'}
+                    variant={currentSubject === subject ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setValue('subject', subject)}
+                    onClick={() => handleSelectSubject(subject)}
                   >
                     {subject.charAt(0).toUpperCase() + subject.slice(1)}
                   </Button>
                 ))}
               </div>
-              {errors.subject && (
-                <p className="text-sm text-red-500">{errors.subject.message}</p>
-              )}
+
+              {/* Chapter Select */}
+              <div className="space-y-2">
+                <Label htmlFor="chapter" className="text-xs text-muted-foreground">
+                  Chapter (optional)
+                </Label>
+                <Select
+                  value={currentChapter}
+                  onValueChange={(value) => {
+                    setCurrentChapter(value ?? '');
+                    setCurrentTopic('');
+                  }}
+                  disabled={!currentSubject}
+                >
+                  <SelectTrigger className="w-full" id="chapter">
+                    <SelectValue
+                      placeholder={
+                        !currentSubject
+                          ? 'Select a subject first'
+                          : chaptersLoading
+                          ? 'Loading chapters...'
+                          : 'Select a chapter'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {chaptersLoading && (
+                      <div className="px-3 py-2">
+                        <Skeleton className="h-4 w-full" />
+                      </div>
+                    )}
+                    {chaptersError && (
+                      <div className="px-3 py-2 text-sm text-red-500 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        Failed to load chapters
+                      </div>
+                    )}
+                    {!chaptersLoading &&
+                      !chaptersError &&
+                      chapters?.map((ch) => (
+                        <SelectItem key={ch.id} value={ch.id}>
+                          {ch.chapter_number !== undefined
+                            ? `Ch. ${ch.chapter_number}: `
+                            : ''}
+                          {ch.name}
+                        </SelectItem>
+                      ))}
+                    {!chaptersLoading && !chaptersError && chapters?.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        No chapters found
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Topic Select */}
+              <div className="space-y-2">
+                <Label htmlFor="topic" className="text-xs text-muted-foreground">
+                  Topic (optional)
+                </Label>
+                <Select
+                  value={currentTopic}
+                  onValueChange={(value) => setCurrentTopic(value ?? '')}
+                  disabled={!currentChapter}
+                >
+                  <SelectTrigger className="w-full" id="topic">
+                    <SelectValue
+                      placeholder={
+                        !currentChapter
+                          ? 'Select a chapter first'
+                          : topicsLoading
+                          ? 'Loading topics...'
+                          : 'Select a topic'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {topicsLoading && (
+                      <div className="px-3 py-2">
+                        <Skeleton className="h-4 w-full" />
+                      </div>
+                    )}
+                    {topicsError && (
+                      <div className="px-3 py-2 text-sm text-red-500 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        Failed to load topics
+                      </div>
+                    )}
+                    {!topicsLoading &&
+                      !topicsError &&
+                      topics?.map((t) => (
+                        <SelectItem key={t.id} value={t.id.toString()}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    {!topicsLoading && !topicsError && topics?.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        No topics found
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddSelection}
+                disabled={!currentSubject}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Selection
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="topics">Topics (comma or line separated)</Label>
-              <textarea
-                id="topics"
-                rows={3}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="e.g. Photosynthesis, Cell Structure, Genetics"
-                {...register('topics')}
-              />
-              {errors.topics && (
-                <p className="text-sm text-red-500">{errors.topics.message}</p>
-              )}
-            </div>
+            {/* Added Selections */}
+            {selections.length > 0 && (
+              <div className="space-y-2">
+                <Label>Selected</Label>
+                <div className="flex flex-wrap gap-2">
+                  {selections.map((sel) => (
+                    <Badge
+                      key={sel.id}
+                      variant="secondary"
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
+                    >
+                      {selectionLabel(sel)}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSelection(sel.id)}
+                        className="ml-0.5 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
+            {/* Goal */}
             <div className="space-y-2">
               <Label>Goal</Label>
               <div className="grid grid-cols-2 gap-2">
@@ -303,39 +516,24 @@ export default function StudyPlanPage() {
               </div>
             </div>
 
+            {/* Deadline */}
             <div className="space-y-2">
-              <Label>Class Level</Label>
-              <div className="flex flex-wrap gap-2">
-                {GRADE_LEVELS.map((grade) => (
-                  <Button
-                    key={grade}
-                    type="button"
-                    variant={watch('class_level') === grade ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setValue('class_level', grade)}
-                  >
-                    Class {grade}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label>Duration</Label>
-                <span className="text-sm font-medium">{totalDays} days</span>
-              </div>
-              <Slider
-                value={[totalDays]}
-                onValueChange={(value) =>
-                  setValue('total_days', Array.isArray(value) ? value[0] : value)
-                }
-                min={7}
-                max={90}
-                step={1}
+              <Label htmlFor="deadline">Deadline</Label>
+              <Input
+                id="deadline"
+                type="date"
+                min={getMinDeadline()}
+                {...register('deadline')}
               />
+              {errors.deadline && (
+                <p className="text-sm text-red-500">{errors.deadline.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Plan must be at least 7 days from today
+              </p>
             </div>
 
+            {/* Daily Hours */}
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label>Daily Study Hours</Label>

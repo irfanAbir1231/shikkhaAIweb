@@ -28,11 +28,18 @@ export interface StudyPlan {
   created_at: string;
 }
 
-export interface StudyPlanGenerateInput {
+export interface PlanSelection {
+  id: string;
   subject: string;
-  topics: string[];
+  chapter?: string;
+  chapterName?: string;
+  topic?: string;
+}
+
+export interface StudyPlanGenerateInput {
+  selections: PlanSelection[];
   goal: string;
-  total_days: number;
+  deadline: string;
   daily_hours: number;
   class_level: string;
 }

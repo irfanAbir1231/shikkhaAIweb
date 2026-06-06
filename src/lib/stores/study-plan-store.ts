@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { StudyPlan, StudyPlanTask, StudyPlanGenerateInput, TaskType } from '@/lib/types/study-plan';
+import { StudyPlan, StudyPlanTask, StudyPlanGenerateInput, TaskType, PlanSelection } from '@/lib/types/study-plan';
 
 interface StudyPlanState {
   plans: StudyPlan[];
@@ -24,6 +24,34 @@ function addDays(dateStr: string, days: number): string {
   const date = new Date(dateStr);
   date.setDate(date.getDate() + days);
   return date.toISOString().split('T')[0];
+}
+
+function daysBetween(start: string, end: string): number {
+  const s = new Date(start);
+  const e = new Date(end);
+  const diff = Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(diff, 1);
+}
+
+function flattenTopics(selections: PlanSelection[]): string[] {
+  const topics: string[] = [];
+  for (const sel of selections) {
+    if (sel.topic && sel.topic.trim()) {
+      topics.push(sel.topic.trim());
+    } else if (sel.chapterName && sel.chapterName.trim()) {
+      topics.push(sel.chapterName.trim());
+    } else {
+      topics.push(sel.subject.charAt(0).toUpperCase() + sel.subject.slice(1));
+    }
+  }
+  return topics;
+}
+
+function buildSubjectLabel(selections: PlanSelection[]): string {
+  const unique = Array.from(new Set(selections.map((s) => s.subject)));
+  if (unique.length === 1) return unique[0];
+  if (unique.length <= 2) return unique.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' & ');
+  return 'Multi-Subject';
 }
 
 function formatDate(dateStr: string): string {
@@ -263,16 +291,19 @@ function generateDailyTasks(
 
 function generateStudyPlan(studentId: number, input: StudyPlanGenerateInput): StudyPlan {
   const startDate = new Date().toISOString().split('T')[0];
-  const endDate = addDays(startDate, input.total_days - 1);
+  const totalDays = daysBetween(startDate, input.deadline);
+  const endDate = addDays(startDate, totalDays - 1);
   const dailyMinutes = input.daily_hours * 60;
+  const topics = flattenTopics(input.selections);
+  const subjectLabel = buildSubjectLabel(input.selections);
 
   const allTasks: StudyPlanTask[] = [];
-  for (let day = 1; day <= input.total_days; day++) {
+  for (let day = 1; day <= totalDays; day++) {
     const dayTasks = generateDailyTasks(
       day,
-      input.total_days,
-      input.subject,
-      input.topics,
+      totalDays,
+      subjectLabel,
+      topics,
       dailyMinutes
     );
     allTasks.push(...dayTasks);
@@ -281,14 +312,14 @@ function generateStudyPlan(studentId: number, input: StudyPlanGenerateInput): St
   const plan: StudyPlan = {
     id: generateId(),
     student_id: studentId,
-    title: `${input.subject.charAt(0).toUpperCase() + input.subject.slice(1)} Study Plan`,
-    subject: input.subject,
+    title: `${subjectLabel} Study Plan`,
+    subject: subjectLabel.toLowerCase(),
     goal: input.goal,
-    topics: input.topics,
+    topics,
     class_level: input.class_level,
     start_date: startDate,
     end_date: endDate,
-    total_days: input.total_days,
+    total_days: totalDays,
     daily_hours: input.daily_hours,
     tasks: allTasks,
     progress: 0,
