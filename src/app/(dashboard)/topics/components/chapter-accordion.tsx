@@ -47,7 +47,10 @@ export function ChapterAccordion({ chapter, subjectName }: ChapterAccordionProps
 
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <BookOpen className="w-4 h-4 text-muted-foreground shrink-0" />
-          <span className="text-sm font-medium truncate">{chapter.chapter_name}</span>
+          <span className="text-sm font-medium truncate">
+            {chapter.chapter_number !== undefined ? `Ch. ${chapter.chapter_number}: ` : ''}
+            {chapter.chapter_name}
+          </span>
         </div>
 
         {/* Progress stats */}

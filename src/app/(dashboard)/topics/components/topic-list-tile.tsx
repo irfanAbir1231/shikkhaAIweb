@@ -1,10 +1,25 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MasteryTopic } from '@/lib/types/analytics';
-import { CheckCircle, AlertCircle, Circle, Play, Lock, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/lib/stores/auth-store';
+import { useExamStore } from '@/lib/stores/exam-store';
+import { useGeneratePracticeExam } from '@/lib/api/subtopics';
+import {
+  CheckCircle,
+  AlertCircle,
+  Circle,
+  Play,
+  Lock,
+  Loader2,
+  Target,
+  Zap,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TopicListTileProps {
@@ -14,6 +29,12 @@ interface TopicListTileProps {
 }
 
 export function TopicListTile({ topic, subject, chapterName }: TopicListTileProps) {
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const { setExam } = useExamStore();
+  const generatePractice = useGeneratePracticeExam();
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const availabilityStatus = topic.availability_status;
   const hasAvailability = availabilityStatus !== undefined;
 
@@ -24,9 +45,44 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
   const isCompleted = topic.is_completed && isAvailable;
   const isAttempted = topic.is_attempted && !topic.is_completed && isAvailable;
   const isUnattempted = !topic.is_attempted && isAvailable;
+  const isWeak = topic.is_weak && isAvailable;
 
-  const scoreText =
-    topic.last_score !== null ? `${Math.round(topic.last_score)}%` : null;
+  const scoreText = `${Math.round(topic.completion_percentage)}%`;
+
+  const handleWeakPractice = async () => {
+    if (!user) {
+      toast.error('Please log in first');
+      return;
+    }
+    if (topic.weak_subtopic_ids.length === 0) {
+      // Fallback to normal exam config if no weak subtopics
+      router.push(
+        `/exam/config?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapterName)}&topic=${encodeURIComponent(topic.name)}`
+      );
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const exam = await generatePractice.mutateAsync({
+        student_id: user.id,
+        subject: subject.toLowerCase(),
+        class_level: user.grade_level || '8',
+        difficulty: 'medium',
+        num_questions: 10,
+        focus_subtopics: topic.weak_subtopic_ids,
+      });
+      setExam(exam);
+      toast.success('Practice exam generated!');
+      router.push(`/exam/session/${exam.exam_id}`);
+    } catch {
+      toast.error('Failed to generate practice exam');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const examConfigUrl = `/exam/config?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapterName)}&topic=${encodeURIComponent(topic.name)}`;
 
   return (
     <div
@@ -89,7 +145,8 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
             )}
           >
             {isCompleted && 'Completed'}
-            {isAttempted && 'In Progress'}
+            {isAttempted && !isWeak && 'In Progress'}
+            {isWeak && 'Weak — needs practice'}
             {isUnattempted && 'Not started'}
             {isLocked && 'Locked (Ingestion required)'}
             {isQueued && 'Processing section...'}
@@ -99,18 +156,17 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
 
       {/* Right: score badge + action */}
       <div className="flex items-center gap-3 shrink-0">
-        {scoreText && (
-          <Badge
-            variant="outline"
-            className={cn(
-              'tabular-nums',
-              isCompleted && 'border-green-300 text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-400',
-              isAttempted && 'border-amber-300 text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400'
-            )}
-          >
-            {scoreText}
-          </Badge>
-        )}
+        <Badge
+          variant="outline"
+          className={cn(
+            'tabular-nums',
+            isCompleted && 'border-green-300 text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-400',
+            isAttempted && 'border-amber-300 text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400',
+            isUnattempted && 'border-gray-300 text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400'
+          )}
+        >
+          {scoreText}
+        </Badge>
 
         {isLocked && (
           <Button size="sm" variant="ghost" disabled className="gap-1.5 opacity-50 cursor-not-allowed">
@@ -127,20 +183,31 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
         )}
 
         {isAvailable && (
-          isUnattempted ? (
-            <Link
-              href={`/exam/config?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapterName)}&topic=${encodeURIComponent(topic.name)}`}
+          isWeak ? (
+            <Button
+              size="sm"
+              className="gap-1.5 bg-amber-600 hover:bg-amber-700"
+              onClick={handleWeakPractice}
+              disabled={isGenerating}
             >
+              {isGenerating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Target className="w-3.5 h-3.5" />
+              )}
+              Practice Weak Areas
+            </Button>
+          ) : isUnattempted ? (
+            <Link href={examConfigUrl}>
               <Button size="sm" className="gap-1.5">
                 <Play className="w-3.5 h-3.5" />
                 Practice
               </Button>
             </Link>
           ) : (
-            <Link
-              href={`/exam/config?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapterName)}&topic=${encodeURIComponent(topic.name)}`}
-            >
+            <Link href={examConfigUrl}>
               <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground">
+                <Zap className="w-3.5 h-3.5 mr-1.5" />
                 Retry
               </Button>
             </Link>

@@ -171,9 +171,15 @@ export interface TopicsData {
 export interface MasteryTopic {
   id: string;
   name: string;
+  chapter?: string;
+  chapter_number?: number;
+  completion_percentage: number;
+  attempts_count: number;
   is_completed: boolean;
   is_attempted: boolean;
+  is_weak: boolean;
   last_score: number | null;
+  weak_subtopic_ids: number[];
   availability_status?: 'available' | 'locked' | 'queued';
   page_start?: number;
   page_end?: number;
@@ -181,6 +187,7 @@ export interface MasteryTopic {
 
 export interface MasteryChapter {
   chapter_name: string;
+  chapter_number?: number;
   overall_completion_percentage: number;
   topics: MasteryTopic[];
 }
