@@ -1,9 +1,46 @@
 'use client';
 
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { FocusSessionManager } from '@/components/focus/FocusSessionManager';
 import { GardenGallery } from '@/components/focus/GardenGallery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Timer, Flower2 } from 'lucide-react';
+
+function FocusSessionContent() {
+  const searchParams = useSearchParams();
+  const topic = searchParams.get('topic') || undefined;
+  const durationParam = searchParams.get('duration');
+  const duration = durationParam ? Number(durationParam) : undefined;
+  const autoStart = searchParams.get('autoStart') === 'true';
+
+  return (
+    <Tabs defaultValue="session" className="w-full">
+      <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsTrigger value="session" className="gap-2">
+          <Timer className="w-4 h-4" />
+          Focus Session
+        </TabsTrigger>
+        <TabsTrigger value="garden" className="gap-2">
+          <Flower2 className="w-4 h-4" />
+          My Garden
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="session" className="mt-6">
+        <FocusSessionManager
+          initialTopic={topic}
+          initialDuration={duration}
+          autoStart={autoStart}
+        />
+      </TabsContent>
+
+      <TabsContent value="garden" className="mt-6">
+        <GardenGallery />
+      </TabsContent>
+    </Tabs>
+  );
+}
 
 export default function FocusSessionPage() {
   return (
@@ -15,26 +52,9 @@ export default function FocusSessionPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="session" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="session" className="gap-2">
-            <Timer className="w-4 h-4" />
-            Focus Session
-          </TabsTrigger>
-          <TabsTrigger value="garden" className="gap-2">
-            <Flower2 className="w-4 h-4" />
-            My Garden
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="session" className="mt-6">
-          <FocusSessionManager />
-        </TabsContent>
-
-        <TabsContent value="garden" className="mt-6">
-          <GardenGallery />
-        </TabsContent>
-      </Tabs>
+      <Suspense fallback={null}>
+        <FocusSessionContent />
+      </Suspense>
     </div>
   );
 }

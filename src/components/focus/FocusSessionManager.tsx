@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFocusSession } from '@/hooks/use-focus-session';
 import { useFocusGardenStore } from '@/lib/stores/focus-garden-store';
 import { FocusTimer } from './FocusTimer';
@@ -12,14 +13,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, GraduationCap, Timer } from 'lucide-react';
+import { BookOpen, GraduationCap, Timer, BookMarked } from 'lucide-react';
 import type { StartFocusSessionInput } from '@/lib/types/focus-session';
 
 const GRACE_MS = 10_000;
 
-export function FocusSessionManager() {
+interface FocusSessionManagerProps {
+  initialTopic?: string;
+  initialDuration?: number;
+  autoStart?: boolean;
+}
+
+export function FocusSessionManager({
+  initialTopic,
+  initialDuration,
+  autoStart,
+}: FocusSessionManagerProps) {
+  const router = useRouter();
   const [mode, setMode] = useState<StartFocusSessionInput['mode']>('study');
-  const [durationMinutes, setDurationMinutes] = useState(25);
+  const [durationMinutes, setDurationMinutes] = useState(
+    initialDuration && initialDuration > 0 ? initialDuration : 25
+  );
   const [sessionCompleted, setSessionCompleted] = useState(false);
 
   const { startPlant, completeSession, abortSession, currentPlant } = useFocusGardenStore();
@@ -71,10 +85,23 @@ export function FocusSessionManager() {
       mode,
       durationMinutes,
       studentId: 'guest', // Replace with actual user ID from auth
+      notes: initialTopic,
     };
     actions.start(input);
     startPlant({ ...input, id: `temp_${Date.now()}`, startTime: new Date().toISOString(), status: 'running', violations: [], integrityScore: { totalViolations: 0, unresolvedViolations: 0, maxConsecutiveViolations: 0, scorePercent: 100, flagged: false, violations: [] } });
-  }, [mode, durationMinutes, actions, startPlant]);
+    // Clear query params so refresh doesn't re-trigger
+    router.replace('/focus-session', { scroll: false });
+  }, [mode, durationMinutes, initialTopic, actions, startPlant, router]);
+
+  // Auto-start when coming from study plan
+  useEffect(() => {
+    if (autoStart && initialTopic && initialDuration && initialDuration > 0 && !isRunning && !session) {
+      const timer = setTimeout(() => {
+        handleStart();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [autoStart, initialTopic, initialDuration, isRunning, session, handleStart]);
 
   const handleReset = useCallback(() => {
     actions.reset();
@@ -93,6 +120,12 @@ export function FocusSessionManager() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
+            {initialTopic && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                <BookMarked className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span className="truncate">{initialTopic}</span>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Session Mode</Label>
@@ -149,6 +182,12 @@ export function FocusSessionManager() {
             />
           </Card>
           <Card className="flex flex-col items-center justify-center p-6">
+            {session?.notes && (
+              <p className="text-sm text-muted-foreground mb-4 text-center max-w-[200px] truncate">
+                <BookMarked className="w-3.5 h-3.5 inline mr-1 text-emerald-500" />
+                {session.notes}
+              </p>
+            )}
             <FocusTimer
               timeRemainingMs={timeRemainingMs}
               isRunning={isRunning}

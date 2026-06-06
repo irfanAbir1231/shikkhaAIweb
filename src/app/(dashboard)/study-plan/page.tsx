@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,6 +43,7 @@ import {
   X,
   Loader2,
   AlertCircle,
+  Play,
 } from 'lucide-react';
 
 const generateSchema = z.object({
@@ -735,12 +737,23 @@ function TaskItem({
   planId: string;
   onToggle: () => void;
 }) {
+  const router = useRouter();
   const Icon = TASK_TYPE_ICONS[task.type] || BookOpen;
   const isBreak = task.type === 'break';
 
+  const handleStartFocus = () => {
+    if (isBreak) return;
+    const params = new URLSearchParams({
+      topic: task.title,
+      duration: String(task.duration_minutes),
+      autoStart: 'true',
+    });
+    router.push(`/focus-session?${params.toString()}`);
+  };
+
   return (
     <div
-      className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+      className={`group flex items-start gap-3 p-3 rounded-lg border transition-colors ${
         task.completed && !isBreak
           ? 'bg-green-50/50 border-green-200 dark:bg-green-950/10 dark:border-green-900/30'
           : 'bg-card border-border hover:bg-muted/50'
@@ -760,7 +773,10 @@ function TaskItem({
       )}
       {isBreak && <Clock className="w-5 h-5 mt-0.5 shrink-0 text-muted-foreground" />}
 
-      <div className="flex-1 min-w-0">
+      <div
+        className={`flex-1 min-w-0 ${!isBreak ? 'cursor-pointer' : ''}`}
+        onClick={handleStartFocus}
+      >
         <div className="flex items-center gap-2 flex-wrap">
           <h4
             className={`font-medium text-sm ${
@@ -775,6 +791,9 @@ function TaskItem({
           >
             {task.type}
           </Badge>
+          {!isBreak && (
+            <Play className="w-3 h-3 text-emerald-500 ml-auto shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
         <p className="text-xs text-muted-foreground mt-1">
