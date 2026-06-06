@@ -9,7 +9,8 @@ interface AuthState {
   setUser: (user: Student | null) => void;
   setAuthenticated: (value: boolean) => void;
   setLoading: (value: boolean) => void;
-  logout: () => void;
+  updateUser: (partial: Partial<Student>) => void;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -21,10 +22,14 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       setAuthenticated: (value) => set({ isAuthenticated: value }),
       setLoading: (value) => set({ isLoading: value }),
-      logout: () => {
+      updateUser: (partial) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...partial } : null,
+        })),
+      logout: async () => {
+        // Clear cookie via API first
+        await fetch('/api/auth/logout', { method: 'POST' });
         set({ user: null, isAuthenticated: false });
-        // Clear cookie via API
-        fetch('/api/auth/logout', { method: 'POST' });
       },
     }),
     {

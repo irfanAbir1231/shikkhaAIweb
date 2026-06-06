@@ -328,32 +328,8 @@ function ExamConfigForm() {
               )}
             </div>
 
-            {/* Class Level */}
-            <div className="space-y-2">
-              <Label>Class Level</Label>
-              <div className="flex flex-wrap gap-2">
-                {GRADE_LEVELS.map((grade) => (
-                  <Button
-                    key={grade}
-                    type="button"
-                    variant={classLevel === grade ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      setValue('class_level', grade);
-                      setValue('chapter', '');
-                      setValue('topic', '');
-                    }}
-                  >
-                    Class {grade}
-                  </Button>
-                ))}
-              </div>
-              {errors.class_level && (
-                <p className="text-sm text-red-500">{errors.class_level.message}</p>
-              )}
-            </div>
-
-            {/* Chapter */}
+            {/* Chapter -- class level is auto-set from user profile */}
+            <input type="hidden" {...register('class_level')} />
             <div className="space-y-2">
               <Label htmlFor="chapter">Chapter</Label>
               <Controller

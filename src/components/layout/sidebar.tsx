@@ -21,8 +21,6 @@ import {
   Menu,
   X,
   Target,
-  Layers,
-  FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Button } from '@/components/ui/button';
@@ -34,9 +32,7 @@ const navItems = [
   { href: '/exam/config', label: 'Exam', icon: FileQuestion },
   { href: '/practice-exam', label: 'Practice', icon: Target },
   { href: '/topics', label: 'Topics', icon: BookOpen },
-  { href: '/weak-subtopics', label: 'Weak Subtopics', icon: Layers },
   { href: '/library', label: 'Library', icon: Library },
-  { href: '/personalized-notes', label: 'Notes', icon: FileText },
   { href: '/study-companion', label: 'Study Companion', icon: MessageCircle },
   { href: '/study-plan', label: 'Study Plan', icon: Calendar },
   { href: '/focus-session', label: 'Focus Session', icon: Timer },
@@ -48,6 +44,11 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r bg-background">
@@ -102,7 +103,7 @@ export function Sidebar() {
           Settings
         </Link>
 
-        <Button variant="ghost" className="w-full justify-start gap-3" onClick={logout}>
+        <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleLogout}>
           <LogOut className="w-5 h-5" />
           Logout
         </Button>
@@ -122,6 +123,11 @@ export function MobileSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [open, setOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -174,7 +180,7 @@ export function MobileSidebar() {
             Settings
           </Link>
 
-          <Button variant="ghost" className="w-full justify-start gap-3" onClick={logout}>
+          <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleLogout}>
             <LogOut className="w-5 h-5" />
             Logout
           </Button>

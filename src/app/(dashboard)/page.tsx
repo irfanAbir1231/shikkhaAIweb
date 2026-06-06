@@ -20,7 +20,6 @@ import {
   ArrowRight,
   Lightbulb,
   Target,
-  Layers,
 } from 'lucide-react';
 
 const quickActions = [
@@ -124,22 +123,7 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                  <Layers className="w-4 h-4" />
-                  Weak Subtopics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Link href="/weak-subtopics">
-                  <Button variant="ghost" size="sm" className="w-full justify-start">
-                    View All Weak Subtopics
-                    <ArrowRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+
           </>
         )}
       </div>
