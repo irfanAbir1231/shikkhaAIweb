@@ -17,13 +17,16 @@ export interface ExamGenerateRequest {
   class_level: string;
   difficulty: 'easy' | 'medium' | 'hard';
   num_questions: number;
+  subtopic_ids?: number[];
+  mastery_threshold?: number;
 }
 
 export interface ExamQuestion {
   id: string;
   type: 'mcq' | 'short_answer';
   topic: string;
-  subtopic?: string;
+  subtopics?: string[];
+  subtopic_ids?: number[];
   prompt: string;
   options: string[];
   marks: number;
@@ -73,6 +76,14 @@ export interface WeakTopic {
   score: number | null;
 }
 
+export interface WeakSubtopic {
+  subtopic_id: number;
+  name: string;
+  topic: string;
+  score: number;
+  reason: string;
+}
+
 export interface GeneratedNote {
   id: number;
   title: string;
@@ -93,6 +104,7 @@ export interface ExamSubmitResponse {
   mcq_correct: number;
   mcq_total: number;
   weak_topics: WeakTopic[];
+  weak_subtopics: WeakSubtopic[];
   readiness_score: number;
   short_answer_feedback: ShortAnswerFeedback[];
   mcq_feedback: McqFeedback[];

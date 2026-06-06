@@ -20,6 +20,9 @@ import {
   GraduationCap,
   Menu,
   X,
+  Target,
+  Layers,
+  FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Button } from '@/components/ui/button';
@@ -29,8 +32,11 @@ import { cn } from '@/lib/utils/cn';
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/exam/config', label: 'Exam', icon: FileQuestion },
+  { href: '/practice-exam', label: 'Practice', icon: Target },
   { href: '/topics', label: 'Topics', icon: BookOpen },
+  { href: '/weak-subtopics', label: 'Weak Subtopics', icon: Layers },
   { href: '/library', label: 'Library', icon: Library },
+  { href: '/personalized-notes', label: 'Notes', icon: FileText },
   { href: '/study-companion', label: 'Study Companion', icon: MessageCircle },
   { href: '/study-plan', label: 'Study Plan', icon: Calendar },
   { href: '/focus-session', label: 'Focus Session', icon: Timer },

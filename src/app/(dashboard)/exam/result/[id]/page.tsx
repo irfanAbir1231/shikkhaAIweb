@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ExamSubmitResponse } from '@/lib/types/exam';
 import { getGradeLetter, getGradeColor } from '@/lib/utils/formatters';
-import { CheckCircle, XCircle, BookOpen, ArrowLeft, RotateCcw } from 'lucide-react';
+import { CheckCircle, XCircle, BookOpen, ArrowLeft, RotateCcw, Target, Layers } from 'lucide-react';
 
 export default function ExamResultPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -90,6 +90,7 @@ export default function ExamResultPage({ params }: { params: { id: string } }) {
       reason: 'Low accuracy on this topic',
       score: 45,
     })),
+    weak_subtopics: [],
     short_answer_feedback: [],
     mcq_feedback: exam.questions.map((q, i) => ({
       question_id: q.id,
@@ -167,6 +168,42 @@ export default function ExamResultPage({ params }: { params: { id: string } }) {
                     <p className="text-sm text-muted-foreground">{topic.reason}</p>
                   </div>
                   <Badge variant="destructive">{topic.score}%</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Weak Subtopics */}
+      {(displayResult.weak_subtopics?.length ?? 0) > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Layers className="w-5 h-5" />
+              Weak Subtopics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {displayResult.weak_subtopics!.map((ws) => (
+                <div
+                  key={ws.subtopic_id}
+                  className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{ws.name}</p>
+                    <p className="text-sm text-muted-foreground">{ws.topic}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{ws.score.toFixed(0)}%</Badge>
+                    <Link href={`/practice-exam?focus=${ws.subtopic_id}`}>
+                      <Button size="sm" variant="ghost">
+                        <Target className="w-3 h-3 mr-1" />
+                        Practice
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>

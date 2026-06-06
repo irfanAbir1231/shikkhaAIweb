@@ -113,6 +113,20 @@ export interface PracticeSuggestion {
   note_id: string | null;
 }
 
+export interface SubtopicAccuracyDetail {
+  subtopic_id: number;
+  name: string;
+  topic: string;
+  chapter: string;
+  subject: string;
+  accuracy: number;
+  total_questions: number;
+  correct_answers: number;
+  trend: number;
+  last_attempted: string | null;
+  is_mastered: boolean;
+}
+
 export interface AnalyticsData {
   topic_accuracy: TopicAccuracyDetail[];
   weak_chapters: WeakChapter[];
@@ -122,6 +136,9 @@ export interface AnalyticsData {
   average_accuracy: number;
   total_questions_attempted: number;
   total_study_minutes: number;
+  subtopic_accuracy: SubtopicAccuracyDetail[];
+  weak_subtopics: SubtopicAccuracyDetail[];
+  mastered_subtopics: SubtopicAccuracyDetail[];
 }
 
 export interface TopicItem {

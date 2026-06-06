@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useExamStore } from '@/lib/stores/exam-store';
 import { useChapters, useTopics } from '@/lib/api/curriculum';
+import { useSubtopics } from '@/lib/api/subtopics';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SUBJECTS, DIFFICULTIES, GRADE_LEVELS } from '@/lib/utils/constants';
-import { Brain, Clock, HelpCircle, Search, X, Loader2, AlertCircle } from 'lucide-react';
+import { Brain, Clock, HelpCircle, Search, X, Loader2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 const configSchema = z.object({
   subject: z.string().min(1, 'Subject is required'),
@@ -255,6 +256,7 @@ function ExamConfigForm() {
         body: JSON.stringify({
           student_id: user.id,
           ...examData,
+          subtopic_ids: selectedSubtopicIds.length > 0 ? selectedSubtopicIds : undefined,
         }),
       });
 
@@ -277,6 +279,13 @@ function ExamConfigForm() {
 
   const chapterSelectDisabled = !subject || !classLevel;
   const topicAutocompleteDisabled = !chapter || chapterSelectDisabled;
+  const [showSubtopics, setShowSubtopics] = useState(false);
+  const [selectedSubtopicIds, setSelectedSubtopicIds] = useState<number[]>([]);
+  const { data: subtopics, isLoading: subtopicsLoading } = useSubtopics(
+    watch('topic'),
+    classLevel,
+    subject
+  );
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -415,7 +424,10 @@ function ExamConfigForm() {
                 render={({ field }) => (
                   <TopicAutocomplete
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={(val) => {
+                      field.onChange(val);
+                      setSelectedSubtopicIds([]);
+                    }}
                     disabled={topicAutocompleteDisabled}
                     classLevel={classLevel}
                     subject={subject}
@@ -425,6 +437,55 @@ function ExamConfigForm() {
                 )}
               />
             </div>
+
+            {/* Subtopic Selection */}
+            {watch('topic') && (
+              <div className="space-y-2 pt-2 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowSubtopics(!showSubtopics)}
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showSubtopics ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  Focus on Specific Subtopics (optional)
+                </button>
+                {showSubtopics && (
+                  <div className="space-y-2">
+                    {subtopicsLoading ? (
+                      <Skeleton className="h-20" />
+                    ) : !subtopics || subtopics.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No subtopics found for this topic.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {subtopics.map((st) => {
+                          const selected = selectedSubtopicIds.includes(st.id);
+                          return (
+                            <button
+                              key={st.id}
+                              type="button"
+                              onClick={() => {
+                                if (selected) {
+                                  setSelectedSubtopicIds((prev) => prev.filter((id) => id !== st.id));
+                                } else {
+                                  setSelectedSubtopicIds((prev) => [...prev, st.id]);
+                                }
+                              }}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                                selected
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-background text-muted-foreground border-border hover:border-primary/50'
+                              }`}
+                            >
+                              {st.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

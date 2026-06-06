@@ -22,4 +22,21 @@ export interface NoteResponse {
   source: string;
   created_at: string;
   updated_at: string | null;
+  version_count?: number;
+}
+
+export interface NoteVersion {
+  id: number;
+  version: number;
+  content: string;
+  generated_at: string;
+}
+
+export interface SavedNote {
+  id: number;
+  note_id: number;
+  title: string;
+  topic: string | null;
+  bookmarked: boolean;
+  saved_at: string;
 }

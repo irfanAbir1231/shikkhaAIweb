@@ -19,13 +19,15 @@ import {
   Timer,
   ArrowRight,
   Lightbulb,
+  Target,
+  Layers,
 } from 'lucide-react';
 
 const quickActions = [
   { href: '/study-companion', label: 'Study Companion', icon: Brain, color: 'bg-blue-500' },
   { href: '/exam/config', label: 'Take Exam', icon: FileQuestion, color: 'bg-green-500' },
+  { href: '/practice-exam', label: 'Adaptive Practice', icon: Target, color: 'bg-red-500' },
   { href: '/analytics', label: 'Analytics', icon: BookOpen, color: 'bg-purple-500' },
-  { href: '/focus-session', label: 'Focus', icon: Timer, color: 'bg-orange-500' },
 ];
 
 async function fetchDashboard(studentId: number): Promise<DashboardData> {
@@ -84,9 +86,10 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {isLoading || !data ? (
           <>
+            <Skeleton className="h-40" />
             <Skeleton className="h-40" />
             <Skeleton className="h-40" />
             <Skeleton className="h-40" />
@@ -94,7 +97,7 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-1">
               <ReadinessCard data={data.readiness} />
             </div>
             <StreakCard data={data.streak} />
@@ -119,6 +122,22 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  <Layers className="w-4 h-4" />
+                  Weak Subtopics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link href="/weak-subtopics">
+                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                    View All Weak Subtopics
+                    <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </>
