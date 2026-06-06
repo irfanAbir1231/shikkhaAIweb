@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ExamSessionProtector } from '@/components/exam/exam-session-protector';
 import { formatDuration } from '@/lib/utils/formatters';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ChevronLeft,
   ChevronRight,
@@ -23,6 +24,7 @@ import {
 
 export default function ExamSessionPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const {
     exam,
@@ -38,6 +40,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
     goToQuestion,
     decrementTimer,
     submitExam,
+    setLastResult,
   } = useExamStore();
 
   // Redirect if no exam loaded
@@ -92,6 +95,16 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
         toast.error(result.error?.message || 'Submission failed');
         return;
       }
+
+      // Store the full result so the result page can display it
+      setLastResult(result.data);
+
+      // Invalidate related queries so dashboard/analytics/notes refresh
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['weak-subtopics'] });
+      queryClient.invalidateQueries({ queryKey: ['attempts'] });
 
       toast.success(`Exam submitted! Score: ${result.data.score_percentage.toFixed(1)}%`);
       router.push(`/exam/result/${exam.exam_id}`);

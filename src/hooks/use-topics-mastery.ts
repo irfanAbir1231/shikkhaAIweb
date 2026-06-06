@@ -120,127 +120,18 @@ export function useTopicsMastery(studentId: number | undefined) {
   });
 }
 
-// ── Textbook Extracted Available Topics Fallback Mock ──
-const MOCK_AVAILABLE_TOPICS: TopicsMasteryData = {
-  subjects: [
-    {
-      subject: 'science',
-      icon_name: 'FlaskConical',
-      total_topics: 7,
-      completed_topics: 2,
-      overall_completion_percentage: 28,
-      chapters: [
-        {
-          chapter_name: 'Force and Motion',
-          overall_completion_percentage: 50,
-          topics: [
-            {
-              id: 'textbook_force_1',
-              name: 'Types of Force',
-              is_completed: true,
-              is_attempted: true,
-              last_score: 85,
-              availability_status: 'available',
-              page_start: 12,
-              page_end: 14,
-            },
-            {
-              id: 'textbook_force_2',
-              name: 'Newton\'s Laws',
-              is_completed: false,
-              is_attempted: true,
-              last_score: 45,
-              availability_status: 'available',
-              page_start: 15,
-              page_end: 18,
-            },
-            {
-              id: 'textbook_force_3',
-              name: 'Velocity and Acceleration',
-              is_completed: false,
-              is_attempted: false,
-              last_score: null,
-              availability_status: 'queued',
-              page_start: 19,
-              page_end: 22,
-            },
-          ],
-        },
-        {
-          chapter_name: 'Chemical Reactions',
-          overall_completion_percentage: 0,
-          topics: [
-            {
-              id: 'textbook_chem_1',
-              name: 'Chemical Equations',
-              is_completed: false,
-              is_attempted: false,
-              last_score: null,
-              availability_status: 'available',
-              page_start: 35,
-              page_end: 39,
-            },
-            {
-              id: 'textbook_chem_2',
-              name: 'Acids and Bases',
-              is_completed: false,
-              is_attempted: false,
-              last_score: null,
-              availability_status: 'locked',
-              page_start: 40,
-              page_end: 45,
-            },
-          ],
-        },
-        {
-          chapter_name: 'Light',
-          overall_completion_percentage: 50,
-          topics: [
-            {
-              id: 'textbook_light_1',
-              name: 'Reflection of Light',
-              is_completed: true,
-              is_attempted: true,
-              last_score: 90,
-              availability_status: 'available',
-              page_start: 55,
-              page_end: 60,
-            },
-            {
-              id: 'textbook_light_2',
-              name: 'Refraction of Light',
-              is_completed: false,
-              is_attempted: false,
-              last_score: null,
-              availability_status: 'locked',
-              page_start: 61,
-              page_end: 65,
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  total_topics: 7,
-  completed_topics: 2,
-};
+// No mock fallback — show empty state when API is unavailable
 
 async function fetchAvailableTopics(studentId: number): Promise<TopicsMasteryData> {
-  try {
-    const res = await fetch(`/api/proxy/student/${studentId}/available-topics`);
-    if (!res.ok) {
-      // Endpoint 404 or error: use fallback mock data
-      return MOCK_AVAILABLE_TOPICS;
-    }
-    const data = await res.json();
-    if (!data.success) {
-      return MOCK_AVAILABLE_TOPICS;
-    }
-    return parseTopicsResponse(data.data);
-  } catch (error) {
-    // Graceful fallback on network failure or other exceptions
-    return MOCK_AVAILABLE_TOPICS;
+  const res = await fetch(`/api/proxy/student/${studentId}/available-topics`);
+  if (!res.ok) {
+    return { subjects: [], total_topics: 0, completed_topics: 0 };
   }
+  const data = await res.json();
+  if (!data.success) {
+    return { subjects: [], total_topics: 0, completed_topics: 0 };
+  }
+  return parseTopicsResponse(data.data);
 }
 
 export function useAvailableTopics(studentId: number | undefined) {

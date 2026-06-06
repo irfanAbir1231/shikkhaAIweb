@@ -16,6 +16,8 @@ export function ReadinessCard({ data }: ReadinessCardProps) {
   const TrendIcon = trend > 0 ? TrendingUp : trend < 0 ? TrendingDown : Minus;
   const trendColor = trend > 0 ? 'text-green-500' : trend < 0 ? 'text-red-500' : 'text-muted-foreground';
 
+  const hasData = overall > 0 || Object.entries(breakdown).length > 0;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -24,29 +26,40 @@ export function ReadinessCard({ data }: ReadinessCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-4xl font-bold" style={{ color: getGradeColor(overall) }}>
-              {overall.toFixed(1)}%
-            </div>
-            <div className={`flex items-center gap-1 text-sm mt-1 ${trendColor}`}>
-              <TrendIcon className="w-4 h-4" />
-              <span>{trend > 0 ? '+' : ''}{trend.toFixed(1)}% vs last</span>
-            </div>
+        {!hasData ? (
+          <div className="text-center py-4">
+            <div className="text-4xl font-bold text-muted-foreground">—</div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Take your first exam to see readiness scores
+            </p>
           </div>
-        </div>
-
-        <Progress value={overall} className="h-2" />
-
-        {Object.entries(breakdown).length > 0 && (
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {Object.entries(breakdown).map(([key, value]) => (
-              <div key={key} className="text-center p-2 bg-muted rounded-lg">
-                <div className="text-lg font-semibold">{value.toFixed(1)}%</div>
-                <div className="text-xs text-muted-foreground">{key}</div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-4xl font-bold" style={{ color: getGradeColor(overall) }}>
+                  {overall.toFixed(1)}%
+                </div>
+                <div className={`flex items-center gap-1 text-sm mt-1 ${trendColor}`}>
+                  <TrendIcon className="w-4 h-4" />
+                  <span>{trend > 0 ? '+' : ''}{trend.toFixed(1)}% vs last</span>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+
+            <Progress value={overall} className="h-2" />
+
+            {Object.entries(breakdown).length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {Object.entries(breakdown).map(([key, value]) => (
+                  <div key={key} className="text-center p-2 bg-muted rounded-lg">
+                    <div className="text-lg font-semibold">{value.toFixed(1)}%</div>
+                    <div className="text-xs text-muted-foreground">{key}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

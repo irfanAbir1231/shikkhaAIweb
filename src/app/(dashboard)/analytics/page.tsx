@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -266,6 +267,16 @@ function WeakChapterCard({ chapter }: { chapter: WeakChapter }) {
 }
 
 function PracticeSuggestionCard({ suggestion }: { suggestion: PracticeSuggestion }) {
+  const router = useRouter();
+
+  const handlePractice = () => {
+    const params = new URLSearchParams();
+    if (suggestion.subject) params.set('subject', suggestion.subject);
+    if (suggestion.topic) params.set('topic', suggestion.topic);
+    if (suggestion.difficulty) params.set('difficulty', suggestion.difficulty);
+    router.push(`/exam/config?${params.toString()}`);
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4 space-y-3">
@@ -287,7 +298,7 @@ function PracticeSuggestionCard({ suggestion }: { suggestion: PracticeSuggestion
             +{suggestion.potential_impact.toFixed(0)}%
           </span>
         </div>
-        <Button size="sm" className="w-full">
+        <Button size="sm" className="w-full" onClick={handlePractice}>
           Practice Now
         </Button>
       </CardContent>

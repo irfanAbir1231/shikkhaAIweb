@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ExamQuestion, AnswerSubmission, ExamResponse } from '@/lib/types/exam';
+import { ExamQuestion, AnswerSubmission, ExamResponse, ExamSubmitResponse } from '@/lib/types/exam';
 
 interface ExamState {
   exam: ExamResponse | null;
@@ -9,6 +9,7 @@ interface ExamState {
   isSubmitted: boolean;
   tabSwitchCount: number;
   isTimerPaused: boolean;
+  lastResult: ExamSubmitResponse | null;
 
   setExam: (exam: ExamResponse) => void;
   setAnswer: (questionId: string, answer: string) => void;
@@ -19,6 +20,7 @@ interface ExamState {
   incrementTabSwitch: () => void;
   setTimerPaused: (value: boolean) => void;
   submitExam: () => void;
+  setLastResult: (result: ExamSubmitResponse | null) => void;
   reset: () => void;
 }
 
@@ -30,6 +32,7 @@ export const useExamStore = create<ExamState>()((set, get) => ({
   isSubmitted: false,
   tabSwitchCount: 0,
   isTimerPaused: false,
+  lastResult: null,
 
   setExam: (exam) =>
     set({
@@ -40,6 +43,7 @@ export const useExamStore = create<ExamState>()((set, get) => ({
       isSubmitted: false,
       tabSwitchCount: 0,
       isTimerPaused: false,
+      lastResult: null,
     }),
 
   setAnswer: (questionId, answer) =>
@@ -82,6 +86,8 @@ export const useExamStore = create<ExamState>()((set, get) => ({
 
   submitExam: () => set({ isSubmitted: true }),
 
+  setLastResult: (result) => set({ lastResult: result }),
+
   reset: () =>
     set({
       exam: null,
@@ -91,5 +97,6 @@ export const useExamStore = create<ExamState>()((set, get) => ({
       isSubmitted: false,
       tabSwitchCount: 0,
       isTimerPaused: false,
+      lastResult: null,
     }),
 }));

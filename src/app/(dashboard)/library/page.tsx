@@ -13,8 +13,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NoteResponse } from '@/lib/types/notes';
+import { SavedExam } from '@/lib/types/exam';
 import { toast } from 'sonner';
-import { BookOpen, Plus, Search, Trash2, FileText } from 'lucide-react';
+import { useSavedExams, useUnsaveExam, useToggleExamBookmark } from '@/lib/api/exams';
+import { BookOpen, Plus, Search, Trash2, FileText, Bookmark, BookmarkX, Trash } from 'lucide-react';
+import Link from 'next/link';
 
 async function fetchNotes(): Promise<NoteResponse[]> {
   const res = await fetch('/api/proxy/notes');
@@ -183,16 +186,114 @@ export default function LibraryPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="quizzes">
-          <Card>
-            <CardContent className="p-12 text-center">
-              <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Saved quizzes coming soon!</p>
-            </CardContent>
-          </Card>
+        <TabsContent value="quizzes" className="space-y-4">
+          <SavedQuizzesTab />
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function SavedQuizzesTab() {
+  const { data: savedExams, isLoading } = useSavedExams();
+  const unsave = useUnsaveExam();
+  const toggleBookmark = useToggleExamBookmark();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!savedExams || savedExams.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Saved Quizzes</h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Save exams from your history or result page to revisit them later.
+          </p>
+          <Link href="/exam/history" className="inline-block mt-4">
+            <Button variant="outline">Go to Exam History</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {savedExams.map((exam) => (
+        <SavedQuizCard
+          key={exam.id}
+          exam={exam}
+          onUnsave={() => unsave.mutate(exam.exam_id)}
+          onToggleBookmark={() => toggleBookmark.mutate(exam.exam_id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function SavedQuizCard({
+  exam,
+  onUnsave,
+  onToggleBookmark,
+}: {
+  exam: SavedExam;
+  onUnsave: () => void;
+  onToggleBookmark: () => void;
+}) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="font-medium truncate">{exam.subject} — {exam.topic}</h4>
+              <Badge variant="secondary" className="text-xs capitalize">{exam.difficulty}</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {exam.num_questions} questions • Saved on {new Date(exam.saved_at).toLocaleDateString()}
+            </p>
+          </div>
+          <div className="flex gap-1 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleBookmark}
+              title={exam.bookmarked ? 'Remove bookmark' : 'Bookmark'}
+            >
+              {exam.bookmarked ? (
+                <Bookmark className="w-4 h-4 text-primary fill-primary" />
+              ) : (
+                <BookmarkX className="w-4 h-4 text-muted-foreground" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onUnsave}
+              title="Remove from saved"
+            >
+              <Trash className="w-4 h-4 text-red-500" />
+            </Button>
+          </div>
+        </div>
+        <div className="mt-3">
+          <Link href={`/exam/result/${exam.exam_id}`}>
+            <Button size="sm" variant="outline" className="w-full">
+              View Result
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

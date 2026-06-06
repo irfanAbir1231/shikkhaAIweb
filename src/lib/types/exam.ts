@@ -134,3 +134,14 @@ export interface AttemptResponse {
   short_answer_feedback: ShortAnswerFeedback[];
   created_at: string;
 }
+
+export interface SavedExam {
+  id: number;
+  exam_id: number;
+  subject: string;
+  topic: string;
+  difficulty: string;
+  num_questions: number;
+  bookmarked: boolean;
+  saved_at: string;
+}

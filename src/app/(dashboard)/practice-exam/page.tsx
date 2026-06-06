@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useWeakSubtopics, useSubtopicPerformance, useGeneratePracticeExam } from '@/lib/api/subtopics';
@@ -23,6 +23,26 @@ function MasteryColor(score: number) {
 }
 
 export default function PracticeExamPage() {
+  return (
+    <Suspense fallback={<PracticeExamSkeleton />}>
+      <PracticeExamContent />
+    </Suspense>
+  );
+}
+
+function PracticeExamSkeleton() {
+  return (
+    <div className="space-y-6 p-4 md:p-6 max-w-4xl mx-auto">
+      <Skeleton className="h-10 w-64" />
+      <div className="grid gap-6 md:grid-cols-2">
+        <Skeleton className="h-96" />
+        <Skeleton className="h-96" />
+      </div>
+    </div>
+  );
+}
+
+function PracticeExamContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const focusParam = searchParams.get('focus');
