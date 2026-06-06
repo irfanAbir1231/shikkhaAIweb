@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -22,8 +22,9 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-export default function ExamResultPage({ params }: { params: { id: string } }) {
+export default function ExamResultPage() {
   const router = useRouter();
+  const params = useParams();
   const { user } = useAuthStore();
   const { exam, lastResult, reset } = useExamStore();
   const [result, setResult] = useState<ExamSubmitResponse | null>(lastResult);
@@ -31,7 +32,7 @@ export default function ExamResultPage({ params }: { params: { id: string } }) {
   const [savedExam, setSavedExam] = useState(false);
   const saveNote = useSaveNote();
 
-  const examId = parseInt(params.id, 10);
+  const examId = parseInt(params?.id as string, 10);
 
   useEffect(() => {
     // If we have lastResult from the store and it matches this exam, use it

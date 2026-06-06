@@ -4,9 +4,13 @@ import type { NoteVersion, SavedNote } from '@/lib/types/notes';
 const API_PROXY = '/api/proxy';
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (options?.body) {
+    headers['Content-Type'] = 'application/json';
+  }
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: { ...headers, ...options?.headers },
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = await res.json();

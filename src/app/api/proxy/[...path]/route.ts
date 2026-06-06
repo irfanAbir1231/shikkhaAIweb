@@ -33,12 +33,19 @@ async function handleProxy(request: NextRequest, method: string) {
     if (method !== 'GET' && method !== 'DELETE') {
       const contentType = request.headers.get('content-type');
       if (contentType?.includes('application/json')) {
-        body = JSON.stringify(await request.json());
-        headers['Content-Type'] = 'application/json';
+        try {
+          const jsonBody = await request.json();
+          body = JSON.stringify(jsonBody);
+          headers['Content-Type'] = 'application/json';
+        } catch {
+          // Empty or unreadable JSON body — forward without body
+          body = undefined;
+        }
       } else if (contentType?.includes('multipart/form-data')) {
         body = await request.formData();
       } else {
-        body = await request.text();
+        const textBody = await request.text();
+        body = textBody || undefined;
       }
     }
 

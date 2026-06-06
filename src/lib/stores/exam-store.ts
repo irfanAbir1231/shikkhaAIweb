@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { ExamQuestion, AnswerSubmission, ExamResponse, ExamSubmitResponse } from '@/lib/types/exam';
 
 interface ExamState {
@@ -24,72 +25,9 @@ interface ExamState {
   reset: () => void;
 }
 
-export const useExamStore = create<ExamState>()((set, get) => ({
-  exam: null,
-  answers: {},
-  currentQuestionIndex: 0,
-  timeRemaining: 0,
-  isSubmitted: false,
-  tabSwitchCount: 0,
-  isTimerPaused: false,
-  lastResult: null,
-
-  setExam: (exam) =>
-    set({
-      exam,
-      answers: {},
-      currentQuestionIndex: 0,
-      timeRemaining: exam.questions.length * 2 * 60, // 2 min per question default
-      isSubmitted: false,
-      tabSwitchCount: 0,
-      isTimerPaused: false,
-      lastResult: null,
-    }),
-
-  setAnswer: (questionId, answer) =>
-    set((state) => ({
-      answers: { ...state.answers, [questionId]: answer },
-    })),
-
-  nextQuestion: () =>
-    set((state) => ({
-      currentQuestionIndex: Math.min(
-        state.currentQuestionIndex + 1,
-        (state.exam?.questions.length || 1) - 1
-      ),
-    })),
-
-  prevQuestion: () =>
-    set((state) => ({
-      currentQuestionIndex: Math.max(state.currentQuestionIndex - 1, 0),
-    })),
-
-  goToQuestion: (index) =>
-    set((state) => ({
-      currentQuestionIndex: Math.max(
-        0,
-        Math.min(index, (state.exam?.questions.length || 1) - 1)
-      ),
-    })),
-
-  decrementTimer: () =>
-    set((state) => ({
-      timeRemaining: Math.max(state.timeRemaining - 1, 0),
-    })),
-
-  incrementTabSwitch: () =>
-    set((state) => ({
-      tabSwitchCount: state.tabSwitchCount + 1,
-    })),
-
-  setTimerPaused: (value) => set({ isTimerPaused: value }),
-
-  submitExam: () => set({ isSubmitted: true }),
-
-  setLastResult: (result) => set({ lastResult: result }),
-
-  reset: () =>
-    set({
+export const useExamStore = create<ExamState>()(
+  persist(
+    (set, get) => ({
       exam: null,
       answers: {},
       currentQuestionIndex: 0,
@@ -98,5 +36,79 @@ export const useExamStore = create<ExamState>()((set, get) => ({
       tabSwitchCount: 0,
       isTimerPaused: false,
       lastResult: null,
+
+      setExam: (exam) =>
+        set({
+          exam,
+          answers: {},
+          currentQuestionIndex: 0,
+          timeRemaining: exam.questions.length * 2 * 60, // 2 min per question default
+          isSubmitted: false,
+          tabSwitchCount: 0,
+          isTimerPaused: false,
+          lastResult: null,
+        }),
+
+      setAnswer: (questionId, answer) =>
+        set((state) => ({
+          answers: { ...state.answers, [questionId]: answer },
+        })),
+
+      nextQuestion: () =>
+        set((state) => ({
+          currentQuestionIndex: Math.min(
+            state.currentQuestionIndex + 1,
+            (state.exam?.questions.length || 1) - 1
+          ),
+        })),
+
+      prevQuestion: () =>
+        set((state) => ({
+          currentQuestionIndex: Math.max(state.currentQuestionIndex - 1, 0),
+        })),
+
+      goToQuestion: (index) =>
+        set((state) => ({
+          currentQuestionIndex: Math.max(
+            0,
+            Math.min(index, (state.exam?.questions.length || 1) - 1)
+          ),
+        })),
+
+      decrementTimer: () =>
+        set((state) => ({
+          timeRemaining: Math.max(state.timeRemaining - 1, 0),
+        })),
+
+      incrementTabSwitch: () =>
+        set((state) => ({
+          tabSwitchCount: state.tabSwitchCount + 1,
+        })),
+
+      setTimerPaused: (value) => set({ isTimerPaused: value }),
+
+      submitExam: () => set({ isSubmitted: true }),
+
+      setLastResult: (result) => set({ lastResult: result }),
+
+      reset: () =>
+        set({
+          exam: null,
+          answers: {},
+          currentQuestionIndex: 0,
+          timeRemaining: 0,
+          isSubmitted: false,
+          tabSwitchCount: 0,
+          isTimerPaused: false,
+          lastResult: null,
+        }),
     }),
-}));
+    {
+      name: 'exam-store',
+      partialize: (state) => ({
+        exam: state.exam,
+        lastResult: state.lastResult,
+      }),
+    }
+  )
+);

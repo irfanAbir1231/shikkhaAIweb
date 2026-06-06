@@ -9,15 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NoteResponse } from '@/lib/types/notes';
 import { SavedExam } from '@/lib/types/exam';
 import { toast } from 'sonner';
 import { useSavedExams, useUnsaveExam, useToggleExamBookmark } from '@/lib/api/exams';
-import { BookOpen, Plus, Search, Trash2, FileText, Bookmark, BookmarkX, Trash } from 'lucide-react';
+import { BookOpen, Plus, Search, Trash2, FileText, Bookmark, BookmarkX, Trash, X } from 'lucide-react';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 async function fetchNotes(): Promise<NoteResponse[]> {
   const res = await fetch('/api/proxy/notes');
@@ -31,6 +33,7 @@ export default function LibraryPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [newNoteOpen, setNewNoteOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<NoteResponse | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['notes'],
@@ -148,7 +151,11 @@ export default function LibraryPage() {
                   <h3 className="text-lg font-semibold mb-3 capitalize">{topic}</h3>
                   <div className="grid gap-3 md:grid-cols-2">
                     {notes.map((note) => (
-                      <Card key={note.id} className="hover:shadow-md transition-shadow">
+                      <Card
+                        key={note.id}
+                        className="hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => setSelectedNote(note)}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
@@ -171,7 +178,10 @@ export default function LibraryPage() {
                               variant="ghost"
                               size="icon"
                               className="shrink-0"
-                              onClick={() => deleteNote.mutate(note.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteNote.mutate(note.id);
+                              }}
                             >
                               <Trash2 className="w-4 h-4 text-red-500" />
                             </Button>
@@ -190,6 +200,27 @@ export default function LibraryPage() {
           <SavedQuizzesTab />
         </TabsContent>
       </Tabs>
+
+      {/* Note Detail Dialog */}
+      <Dialog open={!!selectedNote} onOpenChange={() => setSelectedNote(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedNote?.title}</DialogTitle>
+            <DialogDescription>
+              {selectedNote?.topic && (
+                <Badge variant="secondary" className="mt-1">
+                  {selectedNote.topic}
+                </Badge>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {selectedNote?.content || ''}
+            </ReactMarkdown>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
