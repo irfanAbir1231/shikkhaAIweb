@@ -302,7 +302,7 @@ export default function ExamResultPage() {
                   </div>
                   <div className="prose prose-sm dark:prose-invert max-h-40 overflow-y-auto text-sm text-muted-foreground">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {note.content.slice(0, 400) + (note.content.length > 400 ? '...' : '')}
+                      {note.content}
                     </ReactMarkdown>
                   </div>
                 </div>

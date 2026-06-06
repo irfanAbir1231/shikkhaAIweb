@@ -160,9 +160,11 @@ export default function LibraryPage() {
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium truncate">{note.title}</h4>
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {note.content.slice(0, 100)}...
-                              </p>
+                              <div className="prose prose-sm dark:prose-invert max-w-none line-clamp-2 text-sm text-muted-foreground mt-1">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {note.content}
+                                </ReactMarkdown>
+                              </div>
                               <div className="flex items-center gap-2 mt-2">
                                 <Badge variant="secondary" className="text-xs">
                                   {note.source}

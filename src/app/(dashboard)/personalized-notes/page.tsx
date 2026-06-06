@@ -84,7 +84,7 @@ export default function PersonalizedNotesPage() {
                 <CardContent className="space-y-3">
                   <div className="prose prose-sm dark:prose-invert max-h-48 overflow-y-auto">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {note.content.slice(0, 500) + (note.content.length > 500 ? '...' : '')}
+                      {note.content}
                     </ReactMarkdown>
                   </div>
                   <div className="flex gap-2 pt-2">
