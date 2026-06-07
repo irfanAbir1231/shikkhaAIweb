@@ -28,6 +28,27 @@ const suggestedPrompts = [
   'Help me understand chemical bonding',
 ];
 
+const SUBJECT_KEYWORDS: Record<string, string[]> = {
+  math: ['math', 'mathematics', 'algebra', 'geometry', 'calculus', 'equation', 'formula', 'theorem', 'number', 'fraction', 'decimal', 'percentage', 'ratio', 'proportion', 'area', 'volume', 'perimeter', 'circumference', 'angle', 'triangle', 'circle', 'square', 'rectangle', 'polygon', 'graph', 'statistics', 'probability', 'set', 'function', 'variable', 'constant', 'coefficient', 'polynomial', 'quadratic', 'linear'],
+  physics: ['physics', 'force', 'motion', 'velocity', 'acceleration', 'speed', 'energy', 'work', 'power', 'gravity', 'friction', 'magnet', 'electricity', 'circuit', 'current', 'voltage', 'resistance', 'wave', 'sound', 'light', 'optics', 'lens', 'mirror', 'reflection', 'refraction', 'mass', 'weight', 'density', 'pressure', 'heat', 'temperature', 'thermodynamics', 'nuclear', 'atom', 'electron', 'proton', 'neutron', 'kinematics', 'dynamics'],
+  chemistry: ['chemistry', 'chemical', 'reaction', 'compound', 'mixture', 'element', 'periodic table', 'acid', 'base', 'salt', 'metal', 'non-metal', 'alloy', 'molecule', 'ion', 'bond', 'covalent', 'ionic', 'metallic', 'valency', 'oxidation', 'reduction', 'electrolysis', 'carbon', 'organic', 'inorganic', 'solution', 'solvent', 'solute', 'concentration', 'molarity', 'pH', 'indicator', 'rusting', 'corrosion', 'combustion', 'fermentation', 'polymerization'],
+  biology: ['biology', 'cell', 'tissue', 'organ', 'system', 'plant', 'animal', 'human', 'photosynthesis', 'respiration', 'digestion', 'circulation', 'excretion', 'reproduction', 'genetics', 'dna', 'gene', 'chromosome', 'heredity', 'evolution', 'ecosystem', 'food chain', 'food web', 'habitat', 'adaptation', 'classification', 'bacteria', 'virus', 'fungi', 'microorganism', 'enzyme', 'hormone', 'nutrition', 'diet', 'health', 'disease', 'immunity', 'vaccine'],
+  history: ['history', 'past', 'ancient', 'medieval', 'modern', 'civilization', 'empire', 'dynasty', 'king', 'queen', 'ruler', 'war', 'battle', 'revolution', 'independence', 'colonial', 'freedom', 'movement', 'rebellion', 'mutiny', 'partition', 'constitution', 'democracy', 'government', 'policy', 'treaty', 'agreement', 'archaeology', 'artifact', 'heritage', 'monument', 'culture', 'tradition', 'folklore', 'mythology'],
+  geography: ['geography', 'earth', 'planet', 'continent', 'country', 'nation', 'state', 'city', 'capital', 'river', 'mountain', 'plateau', 'plain', 'valley', 'desert', 'forest', 'ocean', 'sea', 'lake', 'island', 'peninsula', 'coast', 'climate', 'weather', 'monsoon', 'rainfall', 'temperature', 'humidity', 'wind', 'cyclone', 'earthquake', 'volcano', 'tsunami', 'flood', 'drought', 'soil', 'agriculture', 'population', 'census', 'resource', 'industry', 'transport', 'communication', 'map', 'globe', 'latitude', 'longitude', 'equator', 'tropic'],
+  english: ['english', 'grammar', 'noun', 'pronoun', 'verb', 'adjective', 'adverb', 'preposition', 'conjunction', 'interjection', 'tense', 'sentence', 'phrase', 'clause', 'paragraph', 'essay', 'letter', 'story', 'poem', 'poetry', 'drama', 'novel', 'literature', 'comprehension', 'vocabulary', 'synonym', 'antonym', 'homonym', 'spelling', 'punctuation', 'article', 'voice', 'narration', 'transformation', 'tag question', 'idiom', 'proverb', 'figure of speech', 'metaphor', 'simile', 'alliteration', 'personification'],
+  bangla: ['bangla', 'bengali', 'bangladesh', 'dhaka', 'bangla bhasha', 'sahitya', 'kobita', 'golpo', 'uponnash', 'natak', 'boi', 'poddho', 'bondu', 'poribar', 'desh', 'bhasha', 'shiksha', 'itihash', 'bhugol', 'biggan'],
+};
+
+function detectSubject(message: string): string {
+  const lower = message.toLowerCase();
+  for (const [subject, keywords] of Object.entries(SUBJECT_KEYWORDS)) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      return subject;
+    }
+  }
+  return 'science';
+}
+
 export default function StudyCompanionPage() {
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -75,7 +96,7 @@ export default function StudyCompanionPage() {
           student_id: user.id,
           message: messageText,
           mode,
-          subject: 'science',
+          subject: detectSubject(messageText),
           class_level: user.grade_level,
         }),
       });
@@ -117,9 +138,9 @@ export default function StudyCompanionPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col h-full -m-4 lg:-m-8">
       {/* Header */}
-      <div className="border-b px-4 py-3">
+      <div className="border-b px-4 py-3 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -165,7 +186,7 @@ export default function StudyCompanionPage() {
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 scroll-smooth"
+        className="flex-1 overflow-y-auto min-h-0 p-4 lg:p-8 scroll-smooth"
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full text-center px-2">
@@ -182,7 +203,7 @@ export default function StudyCompanionPage() {
                 <Button
                   key={prompt}
                   variant="outline"
-                  className="justify-start text-left h-auto py-3 px-4 transition-colors hover:bg-accent"
+                  className="justify-start text-left h-auto py-3 px-4 transition-colors hover:bg-accent whitespace-normal"
                   onClick={() => handleSend(prompt)}
                 >
                   <Lightbulb className="w-4 h-4 mr-2 shrink-0 text-amber-500" />
@@ -260,7 +281,7 @@ export default function StudyCompanionPage() {
       </div>
 
       {/* Input */}
-      <div className="border-t p-3 sm:p-4">
+      <div className="border-t p-3 sm:p-4 lg:px-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
