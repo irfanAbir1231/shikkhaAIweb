@@ -20,7 +20,7 @@ import { useSaveNote } from '@/lib/api/notes';
 import {
   CheckCircle, XCircle, BookOpen, ArrowLeft, RotateCcw, Target, Layers,
   Save, Bookmark, FileText, ChevronRight, BookMarked, TrendingUp, TrendingDown,
-  Zap, Award, BarChart3, Lightbulb, Sparkles
+  Zap, Award, BarChart3, Lightbulb, Sparkles, Crosshair
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -536,7 +536,7 @@ export default function ExamResultPage() {
                   </Stagger>
                 ) : null}
 
-                {/* Weak subtopics with practice CTA */}
+                {/* Weak subtopics */}
                 {result.weak_subtopics && result.weak_subtopics.length > 0 && (
                   <Stagger gap={0.06}>
                     {result.weak_subtopics.map((ws) => (
@@ -550,17 +550,25 @@ export default function ExamResultPage() {
                             <Badge variant="outline" className="tabular-nums">
                               {ws.score.toFixed(0)}%
                             </Badge>
-                            <Link href={`/practice-exam?focus=${ws.subtopic_id}`}>
-                              <Button size="sm" variant="ghost" className="gap-1 text-xs h-7 px-2">
-                                <Target className="w-3 h-3" />
-                                Practice
-                              </Button>
-                            </Link>
                           </div>
                         </div>
                       </StaggerItem>
                     ))}
                   </Stagger>
+                )}
+
+                {/* Practice Weak Areas CTA */}
+                {exam && result.weak_subtopics && result.weak_subtopics.length > 0 && (
+                  <div className="pt-2">
+                    <Link
+                      href={`/exam/config?practice_weak=1&subject=${encodeURIComponent(exam.subject)}&class_level=${user?.grade_level || '8'}&topic=${encodeURIComponent(exam.topic)}&subtopic_ids=${result.weak_subtopics.map((ws) => ws.subtopic_id).join(',')}`}
+                    >
+                      <Button variant="gradient" size="sm" className="w-full gap-2">
+                        <Crosshair className="w-4 h-4" />
+                        Practice Weak Areas
+                      </Button>
+                    </Link>
+                  </div>
                 )}
 
                 {result.weak_topics.length === 0 && (!result.weak_subtopics || result.weak_subtopics.length === 0) && (
@@ -712,8 +720,18 @@ export default function ExamResultPage() {
             ============================================================= */}
         <Reveal delay={0.45}>
           <div className="flex flex-wrap gap-4 justify-center pt-4">
+            {exam && result.weak_subtopics && result.weak_subtopics.length > 0 && (
+              <Link
+                href={`/exam/config?practice_weak=1&subject=${encodeURIComponent(exam.subject)}&class_level=${user?.grade_level || '8'}&topic=${encodeURIComponent(exam.topic)}&subtopic_ids=${result.weak_subtopics.map((ws) => ws.subtopic_id).join(',')}`}
+              >
+                <Button variant="gradient" size="xl" className="gap-2">
+                  <Crosshair className="w-5 h-5" />
+                  Practice Weak Areas
+                </Button>
+              </Link>
+            )}
             <Link href="/exam/config">
-              <Button variant="gradient" size="xl" className="gap-2">
+              <Button variant={exam && result.weak_subtopics && result.weak_subtopics.length > 0 ? 'outline' : 'gradient'} size="xl" className="gap-2">
                 <RotateCcw className="w-5 h-5" />
                 Retake Exam
               </Button>

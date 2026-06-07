@@ -46,6 +46,7 @@ import {
   Layers,
   ArrowRight,
   CheckCircle2,
+  Crosshair,
 } from 'lucide-react';
 
 const configSchema = z.object({
@@ -219,6 +220,7 @@ function ExamSummaryPanel({
   timeLimit,
   subtopicCount,
   isLoading,
+  isPracticeWeak,
 }: {
   subject: string;
   chapterName: string;
@@ -228,6 +230,7 @@ function ExamSummaryPanel({
   timeLimit: number;
   subtopicCount: number;
   isLoading: boolean;
+  isPracticeWeak?: boolean;
 }) {
   const diffConfig =
     difficulty === 'easy'
@@ -239,18 +242,18 @@ function ExamSummaryPanel({
   const ready = !!subject && !!chapterName && !!topic;
 
   return (
-    <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+    <div className="lg:sticky lg:top-4 lg:self-start space-y-3">
       <Reveal delay={0.2}>
-        <Card variant="glass" className="overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Target className="w-5 h-5 text-primary" />
+        <Card variant="glass" className="overflow-hidden" size="sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Target className="w-4 h-4 text-primary" />
               Exam Summary
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {/* Config list */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <SummaryRow
                 icon={<BookOpen className="w-4 h-4" />}
                 label="Subject"
@@ -293,19 +296,19 @@ function ExamSummaryPanel({
                 value={`${timeLimit} min`}
                 active
               />
-              {subtopicCount > 0 && (
+              {isPracticeWeak && subtopicCount > 0 && (
                 <SummaryRow
-                  icon={<CheckCircle2 className="w-4 h-4" />}
-                  label="Focused Subtopics"
-                  value={`${subtopicCount} selected`}
+                  icon={<Crosshair className="w-4 h-4" />}
+                  label="Focus Areas"
+                  value={`${subtopicCount} weak subtopic${subtopicCount !== 1 ? 's' : ''}`}
                   active
                 />
               )}
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 pt-4">
-              <div className="flex items-center justify-between text-sm mb-4">
+            <div className="border-t border-foreground/10 pt-3">
+              <div className="flex items-center justify-between text-sm mb-3">
                 <span className="text-muted-foreground">Est. duration</span>
                 <span className="font-semibold tabular-nums">{timeLimit} min</span>
               </div>
@@ -313,19 +316,19 @@ function ExamSummaryPanel({
               <Button
                 type="submit"
                 variant="default"
-                size="xl"
+                size="lg"
                 className="w-full transition-all"
                 disabled={isLoading || !ready}
               >
                 {isLoading ? (
                   <span className="inline-flex items-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     Generating…
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-2">
-                    <Wand2 className="w-5 h-5" />
-                    Generate Exam
+                    <Wand2 className="w-4 h-4" />
+                    {isPracticeWeak ? 'Practice Weak Areas' : 'Generate Exam'}
                     <ArrowRight className="w-4 h-4" />
                   </span>
                 )}
@@ -339,14 +342,6 @@ function ExamSummaryPanel({
             </div>
           </CardContent>
         </Card>
-      </Reveal>
-
-      {/* Helper tip */}
-      <Reveal delay={0.3}>
-        <div className="rounded-xl border border-foreground/10 bg-muted/30 px-4 py-3 text-xs text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Tip:</span> Choose specific subtopics to
-          focus your exam on weak areas. The AI adapts question difficulty based on your selection.
-        </div>
       </Reveal>
     </div>
   );
@@ -364,13 +359,13 @@ function SummaryRow({
   active: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 ${active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+    <div className="flex items-center gap-2.5">
+      <div className={`flex items-center justify-center w-7 h-7 rounded-md shrink-0 ${active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
         {icon}
       </div>
       <div className="min-w-0">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-sm font-medium truncate ${active ? 'text-foreground' : 'text-muted-foreground'}`}>
+        <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>
+        <p className={`text-sm font-medium truncate leading-tight ${active ? 'text-foreground' : 'text-muted-foreground'}`}>
           {value}
         </p>
       </div>
@@ -391,8 +386,15 @@ function ExamConfigForm() {
   const urlSubject = searchParams.get('subject') || '';
   const urlTopic = searchParams.get('topic') || '';
   const urlChapter = searchParams.get('chapter') || '';
+  const urlClassLevel = searchParams.get('class_level') || '';
   const urlTimeLimit = searchParams.get('time_limit');
   const urlNumQuestions = searchParams.get('num_questions');
+  const isPracticeWeak = searchParams.get('practice_weak') === '1';
+  const urlWeakSubtopicIds = searchParams
+    .get('subtopic_ids')
+    ?.split(',')
+    .map((s) => parseInt(s, 10))
+    .filter((n) => !isNaN(n) && n > 0) || [];
 
   const {
     register,
@@ -406,8 +408,8 @@ function ExamConfigForm() {
     defaultValues: {
       subject: urlSubject || 'science',
       topic: urlTopic || '',
-      class_level: user?.grade_level || '8',
-      chapter: '',
+      class_level: urlClassLevel || user?.grade_level || '8',
+      chapter: urlChapter || '',
       difficulty: 'medium',
       num_questions: urlNumQuestions
         ? Math.min(50, Math.max(5, parseInt(urlNumQuestions)))
@@ -486,56 +488,65 @@ function ExamConfigForm() {
 
   const chapterSelectDisabled = !subject || !classLevel;
   const topicAutocompleteDisabled = !chapter || chapterSelectDisabled;
-  const [showSubtopics, setShowSubtopics] = useState(false);
-  const [selectedSubtopicIds, setSelectedSubtopicIds] = useState<number[]>([]);
-  const { data: subtopics, isLoading: subtopicsLoading } = useSubtopics(
-    watch('topic'),
+  const [selectedSubtopicIds, setSelectedSubtopicIds] = useState<number[]>(
+    isPracticeWeak ? urlWeakSubtopicIds : []
+  );
+  const { data: allSubtopics, isLoading: subtopicsLoading } = useSubtopics(
+    isPracticeWeak ? watch('topic') : undefined,
     classLevel,
     subject
   );
+  const weakSubtopics =
+    isPracticeWeak && allSubtopics
+      ? allSubtopics.filter((st) => urlWeakSubtopicIds.includes(st.id))
+      : [];
 
   const selectedChapterName =
     chapters?.find((ch: { id: string; name: string }) => ch.id === chapter)?.name || '';
 
   return (
-    <div className="relative min-h-screen pb-20">
+    <div className="h-screen overflow-hidden flex flex-col relative">
       {/* Ambient background */}
       <div className="absolute inset-0 -z-10 opacity-30">
         <AIBackground />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-4 flex-1 min-h-0 flex flex-col w-full">
         {/* Header */}
         <Reveal>
-          <div className="mb-6">
-            <h1 className="font-heading text-3xl font-bold tracking-tight">Generate Exam</h1>
-            <p className="text-muted-foreground">
-              Configure your personalized practice exam
+          <div className="mb-3 shrink-0">
+            <h1 className="font-heading text-2xl font-bold tracking-tight">
+              {isPracticeWeak ? 'Practice Weak Areas' : 'Generate Exam'}
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              {isPracticeWeak
+                ? 'Focus on the subtopics you need to improve'
+                : 'Configure your personalized practice exam'}
             </p>
           </div>
         </Reveal>
 
         {isLoading && (
-          <div className="py-16">
+          <div className="flex-1 flex items-center justify-center">
             <AILoader label="Generating personalized exam…" />
           </div>
         )}
 
         {!isLoading && (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex-1 min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 items-stretch h-full">
               {/* ═══════ LEFT COLUMN: Configuration ═══════ */}
-              <div className="space-y-6">
+              <div className="flex flex-col gap-4 min-h-0 overflow-y-auto lg:overflow-visible pr-1">
                 {/* ── Subject & Topic ── */}
                 <Reveal delay={0.05}>
-                  <Card variant="glass" className="overflow-visible">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Brain className="w-5 h-5 text-primary" />
+                  <Card variant="glass" className="overflow-visible" size="sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-2 text-sm">
+                        <Brain className="w-4 h-4 text-primary" />
                         Subject &amp; Topic
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-5">
+                    <CardContent className="space-y-4">
                       {/* Subject pills */}
                       <div className="space-y-2">
                         <Label>Subject</Label>
@@ -660,79 +671,23 @@ function ExamConfigForm() {
                         />
                       </div>
 
-                      {/* Subtopics */}
-                      {watch('topic') && (
-                        <div className="space-y-2 pt-3 border-t border-foreground/5">
-                          <button
-                            type="button"
-                            onClick={() => setShowSubtopics(!showSubtopics)}
-                            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {showSubtopics ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                            Focus on Specific Subtopics (optional)
-                          </button>
-                          {showSubtopics && (
-                            <div className="space-y-2">
-                              {subtopicsLoading ? (
-                                <Skeleton className="h-20" />
-                              ) : !subtopics || subtopics.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
-                                  No subtopics found for this topic.
-                                </p>
-                              ) : (
-                                <div className="flex flex-wrap gap-2">
-                                  {subtopics.map((st) => {
-                                    const selected = selectedSubtopicIds.includes(st.id);
-                                    return (
-                                      <button
-                                        key={st.id}
-                                        type="button"
-                                        onClick={() => {
-                                          if (selected) {
-                                            setSelectedSubtopicIds((prev) =>
-                                              prev.filter((id) => id !== st.id)
-                                            );
-                                          } else {
-                                            setSelectedSubtopicIds((prev) => [...prev, st.id]);
-                                          }
-                                        }}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                                          selected
-                                            ? 'bg-primary text-primary-foreground border-transparent'
-                                            : 'glass text-muted-foreground border-foreground/10 hover:border-primary/30 hover:text-foreground'
-                                        }`}
-                                      >
-                                        {st.name}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 </Reveal>
 
                 {/* ── Exam Settings ── */}
-                <Reveal delay={0.15}>
-                  <Card variant="glass">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <HelpCircle className="w-5 h-5 text-primary" />
+                <Reveal delay={0.1}>
+                  <Card variant="glass" size="sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-2 text-sm">
+                        <HelpCircle className="w-4 h-4 text-primary" />
                         Exam Settings
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-4">
                       {/* Difficulty */}
-                      <div className="space-y-2">
-                        <Label>Difficulty</Label>
+                      <div className="space-y-1.5">
+                        <Label className="text-sm">Difficulty</Label>
                         <div className="flex gap-2">
                           {DIFFICULTIES.map((diff) => {
                             const active = difficulty === diff;
@@ -741,6 +696,7 @@ function ExamConfigForm() {
                                 key={diff}
                                 type="button"
                                 variant={active ? 'default' : 'outline'}
+                                size="sm"
                                 className={`flex-1 capitalize ${
                                   active ? 'ring-2 ring-primary/20' : 'border-foreground/10 hover:border-primary/30'
                                 }`}
@@ -754,9 +710,9 @@ function ExamConfigForm() {
                       </div>
 
                       {/* Number of questions */}
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <Label>Number of Questions</Label>
+                          <Label className="text-sm">Number of Questions</Label>
                           <span className="text-sm font-semibold tabular-nums text-primary">
                             {numQuestions}
                           </span>
@@ -773,9 +729,9 @@ function ExamConfigForm() {
                       </div>
 
                       {/* Time limit */}
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <Label className="flex items-center gap-2">
+                          <Label className="flex items-center gap-2 text-sm">
                             <Clock className="w-4 h-4 text-muted-foreground" />
                             Time Limit (minutes)
                           </Label>
@@ -796,19 +752,76 @@ function ExamConfigForm() {
                     </CardContent>
                   </Card>
                 </Reveal>
+
+                {/* ── Weak Areas (only in practice-weak mode) ── */}
+                {isPracticeWeak && watch('topic') && (
+                  <Reveal delay={0.15}>
+                    <Card variant="glass" size="sm">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-sm">
+                          <Crosshair className="w-4 h-4 text-primary" />
+                          Focus Areas
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          These are the weak subtopics identified from your previous exam. Deselect any you do not want to focus on.
+                        </p>
+                        {subtopicsLoading ? (
+                          <Skeleton className="h-16" />
+                        ) : weakSubtopics.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">
+                            No weak subtopics found for this topic.
+                          </p>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {weakSubtopics.map((st) => {
+                              const selected = selectedSubtopicIds.includes(st.id);
+                              return (
+                                <button
+                                  key={st.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (selected) {
+                                      setSelectedSubtopicIds((prev) =>
+                                        prev.filter((id) => id !== st.id)
+                                      );
+                                    } else {
+                                      setSelectedSubtopicIds((prev) => [...prev, st.id]);
+                                    }
+                                  }}
+                                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                    selected
+                                      ? 'bg-primary text-primary-foreground border-transparent'
+                                      : 'glass text-muted-foreground border-foreground/10 hover:border-primary/30 hover:text-foreground'
+                                  }`}
+                                >
+                                  {st.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Reveal>
+                )}
               </div>
 
               {/* ═══════ RIGHT COLUMN: Sticky Summary ═══════ */}
-              <ExamSummaryPanel
-                subject={subject}
-                chapterName={selectedChapterName}
-                topic={topic}
-                difficulty={difficulty}
-                numQuestions={numQuestions}
-                timeLimit={timeLimit}
-                subtopicCount={selectedSubtopicIds.length}
-                isLoading={isLoading}
-              />
+              <div className="shrink-0">
+                <ExamSummaryPanel
+                  subject={subject}
+                  chapterName={selectedChapterName}
+                  topic={topic}
+                  difficulty={difficulty}
+                  numQuestions={numQuestions}
+                  timeLimit={timeLimit}
+                  subtopicCount={selectedSubtopicIds.length}
+                  isLoading={isLoading}
+                  isPracticeWeak={isPracticeWeak}
+                />
+              </div>
             </div>
           </form>
         )}
@@ -824,21 +837,21 @@ export default function ExamConfigPage() {
   return (
     <Suspense
       fallback={
-        <div className="relative min-h-screen pb-20">
+        <div className="h-screen overflow-hidden flex flex-col relative">
           <div className="absolute inset-0 -z-10 opacity-30">
             <AIBackground />
           </div>
-          <div className="max-w-6xl mx-auto px-4 py-8">
-            <div className="mb-6 space-y-1">
-              <Skeleton className="h-10 w-56" />
-              <Skeleton className="h-5 w-72" />
+          <div className="max-w-6xl mx-auto px-4 py-4 flex-1 min-h-0 flex flex-col w-full">
+            <div className="mb-3 space-y-1 shrink-0">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-              <div className="space-y-6">
-                <Skeleton className="h-80" />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 flex-1">
+              <div className="space-y-4">
                 <Skeleton className="h-64" />
+                <Skeleton className="h-48" />
               </div>
-              <Skeleton className="h-96" />
+              <Skeleton className="h-80" />
             </div>
           </div>
         </div>
