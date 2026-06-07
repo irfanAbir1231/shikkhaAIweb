@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { StudySpace } from '@/lib/types/spaces';
+import { Stagger, StaggerItem } from '@/components/motion/reveal';
 import { BookOpen, FileText } from 'lucide-react';
 
 interface SpacesGridProps {
@@ -15,10 +16,10 @@ interface SpacesGridProps {
 function SpaceCard({ space }: { space: StudySpace }) {
   return (
     <Link href={`/spaces/${space.id}`} className="block">
-      <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+      <Card variant="glass" interactive className="h-full">
         <CardContent className="p-5 flex flex-col h-full">
           <div className="flex items-start justify-between mb-3">
-            <Badge variant="outline" className="capitalize">
+            <Badge variant="outline" className="capitalize glass">
               {space.subject}
             </Badge>
             <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -52,18 +53,16 @@ function SpacesSkeleton() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i} className="h-full">
-          <CardContent className="p-5 space-y-3">
-            <div className="flex items-start justify-between">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-4 w-16" />
-            </div>
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
-            <Skeleton className="h-3 w-16" />
-          </CardContent>
-        </Card>
+        <div key={i} className="rounded-2xl glass p-5 space-y-3 h-full">
+          <div className="flex items-start justify-between">
+            <Skeleton className="h-5 w-20 skeleton-shimmer" />
+            <Skeleton className="h-4 w-16 skeleton-shimmer" />
+          </div>
+          <Skeleton className="h-6 w-3/4 skeleton-shimmer" />
+          <Skeleton className="h-4 w-full skeleton-shimmer" />
+          <Skeleton className="h-4 w-2/3 skeleton-shimmer" />
+          <Skeleton className="h-3 w-16 skeleton-shimmer" />
+        </div>
       ))}
     </div>
   );
@@ -76,9 +75,11 @@ export function SpacesGrid({ spaces, isLoading }: SpacesGridProps) {
 
   if (!spaces || spaces.length === 0) {
     return (
-      <Card>
+      <Card variant="glass">
         <CardContent className="p-12 text-center">
-          <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-4 shadow-glow">
+            <BookOpen className="w-6 h-6 text-white" />
+          </div>
           <p className="text-muted-foreground font-medium">No study spaces yet</p>
           <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
             Create your first study space to upload PDFs, organize your materials, and chat with AI about your documents.
@@ -89,10 +90,12 @@ export function SpacesGrid({ spaces, isLoading }: SpacesGridProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <Stagger className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" gap={0.06}>
       {spaces.map((space) => (
-        <SpaceCard key={space.id} space={space} />
+        <StaggerItem key={space.id}>
+          <SpaceCard space={space} />
+        </StaggerItem>
       ))}
-    </div>
+    </Stagger>
   );
 }

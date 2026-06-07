@@ -5,7 +5,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useUploadDocument } from '@/lib/api/spaces';
-import { Upload, FileCheck, AlertCircle, Loader2, X } from 'lucide-react';
+import { AILoader } from '@/components/ui/ai-loader';
+import { Upload, FileCheck, AlertCircle, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 const ALLOWED_TYPE = 'application/pdf';
@@ -33,7 +35,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
     return null;
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = useCallback((file: File) => {
     const error = validateFile(file);
     if (error) {
       toast.error(error);
@@ -42,7 +44,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
     }
     setSelectedFile(file);
     setUploadProgress(0);
-  };
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -64,7 +66,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
 
     const file = e.dataTransfer.files?.[0];
     if (file) handleFile(file);
-  }, [isUploading]);
+  }, [isUploading, handleFile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,21 +117,21 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !isUploading && inputRef.current?.click()}
-        className={`
-          relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
-          ${isDragging && !isUploading ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}
-          ${isUploading ? 'cursor-not-allowed opacity-60' : 'hover:bg-muted/50'}
-        `}
+        className={cn(
+          'relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all',
+          isDragging && !isUploading && 'border-brand-from bg-brand-from/5 shadow-glow',
+          !isDragging && !isUploading && 'border-border/50 glass hover:bg-muted/20 hover:border-brand-from/30',
+          isUploading && 'cursor-not-allowed opacity-60'
+        )}
       >
         {isUploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-sm font-medium">Uploading...</p>
+            <AILoader compact label="Uploading..." />
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Upload className="w-6 h-6 text-primary" />
+            <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow">
+              <Upload className="w-6 h-6 text-white" />
             </div>
             <div>
               <p className="text-sm font-medium">
@@ -145,7 +147,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
 
       {/* Selected file preview */}
       {selectedFile && !isUploading && (
-        <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+        <div className="flex items-center gap-3 p-3 rounded-xl glass hover-lift">
           <FileCheck className="w-5 h-5 text-primary shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{selectedFile.name}</p>
@@ -153,7 +155,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
               {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
             </p>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleClear}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 hover-lift" onClick={handleClear}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -176,7 +178,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
 
       {/* Upload button */}
       {selectedFile && !isUploading && (
-        <Button onClick={handleUpload} className="w-full">
+        <Button onClick={handleUpload} variant="gradient" className="w-full">
           <Upload className="w-4 h-4 mr-1" />
           Upload PDF
         </Button>

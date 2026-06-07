@@ -32,7 +32,7 @@ export function CreateSpaceButton() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
+      <Button onClick={() => setOpen(true)} variant="gradient">
         <Plus className="w-4 h-4 mr-1" />
         Create Space
       </Button>
@@ -125,7 +125,7 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
                 <Button
                   key={subject}
                   type="button"
-                  variant={selectedSubject === subject ? 'default' : 'outline'}
+                  variant={selectedSubject === subject ? 'gradient' : 'outline'}
                   size="sm"
                   onClick={() => handleSubjectSelect(subject)}
                 >
@@ -146,7 +146,7 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
                 <Button
                   key={grade}
                   type="button"
-                  variant={selectedClassLevel === grade ? 'default' : 'outline'}
+                  variant={selectedClassLevel === grade ? 'gradient' : 'outline'}
                   size="sm"
                   onClick={() => handleClassLevelSelect(grade)}
                 >
@@ -175,6 +175,7 @@ export function CreateSpaceModal({ open, onOpenChange }: CreateSpaceModalProps) 
 
           <Button
             type="submit"
+            variant="gradient"
             className="w-full"
             disabled={createSpace.isPending}
           >

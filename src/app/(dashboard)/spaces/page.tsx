@@ -5,6 +5,7 @@ import { CreateSpaceButton } from '@/components/spaces/create-space-modal';
 import { useSpaces } from '@/lib/api/spaces';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import { Reveal } from '@/components/motion/reveal';
 
 export default function SpacesPage() {
   const { data: spaces, isLoading, error } = useSpaces();
@@ -17,15 +18,17 @@ export default function SpacesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Study Spaces</h1>
-          <p className="text-muted-foreground">
-            Organize your study materials and chat with AI about your documents
-          </p>
+      <Reveal>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gradient">Study Spaces</h1>
+            <p className="text-muted-foreground">
+              Organize your study materials and chat with AI about your documents
+            </p>
+          </div>
+          <CreateSpaceButton />
         </div>
-        <CreateSpaceButton />
-      </div>
+      </Reveal>
 
       <SpacesGrid spaces={spaces} isLoading={isLoading} />
     </div>
