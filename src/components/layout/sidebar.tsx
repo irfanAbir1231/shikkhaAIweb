@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -18,8 +18,10 @@ import {
   LogOut,
   GraduationCap,
   Menu,
-  X,
+  Sun,
+  Moon,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -37,6 +39,37 @@ const navItems = [
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
+function ThemeToggle({ className }: { className?: string }) {
+  const { theme, setTheme } = useTheme();
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  if (!mounted) {
+    return <div className={cn('h-10', className)} aria-hidden="true" />;
+  }
+
+  const isDark = theme === 'dark';
+  const next = isDark ? 'light' : 'dark';
+
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(next)}
+      className={cn(
+        'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 hover-lift transition-all duration-200 w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        className
+      )}
+      aria-label={`Switch to ${next} mode`}
+    >
+      {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      <span>{isDark ? 'Light' : 'Dark'} Mode</span>
+    </button>
+  );
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
@@ -47,11 +80,13 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r bg-background">
+    <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 glass-strong">
       <div className="p-6">
-        <Link href="/" className="flex items-center gap-2">
-          <GraduationCap className="w-8 h-8 text-primary" />
-          <span className="text-xl font-bold">ShikkhaAI</span>
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-9 h-9 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-shadow">
+            <GraduationCap className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-xl font-bold text-gradient">ShikkhaAI</span>
         </Link>
       </div>
 
@@ -65,47 +100,62 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'text-white'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover-lift'
               )}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className="w-5 h-5" />
-              {item.label}
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute left-0 w-1 h-8 bg-primary rounded-r-full"
+                  className="absolute inset-0 rounded-xl bg-brand-gradient shadow-glow"
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 />
               )}
+              <Icon className={cn('w-5 h-5 relative z-10', isActive && 'text-white')} />
+              <span className="relative z-10">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t space-y-2">
+      <div className="p-4 border-t border-border/50 space-y-1">
         <Link
           href="/settings"
           className={cn(
-            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+            'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring',
             pathname === '/settings'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              ? 'text-white'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover-lift'
           )}
+          aria-current={pathname === '/settings' ? 'page' : undefined}
         >
-          <Settings className="w-5 h-5" />
-          Settings
+          {pathname === '/settings' && (
+            <motion.div
+              layoutId="activeNav"
+              className="absolute inset-0 rounded-xl bg-brand-gradient shadow-glow"
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            />
+          )}
+          <Settings className={cn('w-5 h-5 relative z-10', pathname === '/settings' && 'text-white')} />
+          <span className="relative z-10">Settings</span>
         </Link>
 
-        <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleLogout}>
+        <ThemeToggle />
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 hover-lift transition-all duration-200 w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <LogOut className="w-5 h-5" />
-          Logout
-        </Button>
+          <span>Logout</span>
+        </button>
 
         {user && (
-          <div className="px-3 py-2">
+          <div className="mt-2 p-3 rounded-xl glass">
             <p className="text-sm font-medium truncate">{user.name}</p>
             <p className="text-xs text-muted-foreground truncate">Class {user.grade_level}</p>
           </div>
@@ -134,63 +184,92 @@ export function MobileSidebar() {
           </Button>
         }
       />
-      <SheetContent side="left" className="w-64 p-0">
-        <div className="p-6">
-          <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-            <GraduationCap className="w-8 h-8 text-primary" />
-            <span className="text-xl font-bold">ShikkhaAI</span>
-          </Link>
-        </div>
+      <SheetContent side="left" className="w-64 p-0 gap-0 bg-transparent shadow-none border-0">
+        <div className="flex flex-col h-full glass-strong">
+          <div className="p-6">
+            <Link href="/" className="flex items-center gap-3 group" onClick={() => setOpen(false)}>
+              <div className="w-9 h-9 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow">
+                <GraduationCap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gradient">ShikkhaAI</span>
+            </Link>
+          </div>
 
-        <nav className="px-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          <nav className="flex-1 px-4 space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-              >
-                <Icon className="w-5 h-5" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    isActive
+                      ? 'text-white'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover-lift'
+                  )}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute inset-0 rounded-xl bg-brand-gradient shadow-glow"
+                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                  <Icon className={cn('w-5 h-5 relative z-10', isActive && 'text-white')} />
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t space-y-2">
-          <Link
-            href="/settings"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted"
-          >
-            <Settings className="w-5 h-5" />
-            Settings
-          </Link>
+          <div className="p-4 border-t border-border/50 space-y-1">
+            <Link
+              href="/settings"
+              onClick={() => setOpen(false)}
+              className={cn(
+                'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                pathname === '/settings'
+                  ? 'text-white'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover-lift'
+              )}
+              aria-current={pathname === '/settings' ? 'page' : undefined}
+            >
+              {pathname === '/settings' && (
+                <motion.div
+                  layoutId="activeNav"
+                  className="absolute inset-0 rounded-xl bg-brand-gradient shadow-glow"
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                />
+              )}
+              <Settings className={cn('w-5 h-5 relative z-10', pathname === '/settings' && 'text-white')} />
+              <span className="relative z-10">Settings</span>
+            </Link>
 
-          <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleLogout}>
-            <LogOut className="w-5 h-5" />
-            Logout
-          </Button>
+            <ThemeToggle />
 
-          {user && (
-            <div className="px-3 py-2">
-              <p className="text-sm font-medium truncate">{user.name}</p>
-              <p className="text-xs text-muted-foreground truncate">Class {user.grade_level}</p>
-            </div>
-          )}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 hover-lift transition-all duration-200 w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
+
+            {user && (
+              <div className="mt-2 p-3 rounded-xl glass">
+                <p className="text-sm font-medium truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">Class {user.grade_level}</p>
+              </div>
+            )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
   );
 }
-
-
