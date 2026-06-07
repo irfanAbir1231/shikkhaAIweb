@@ -119,7 +119,7 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
         )}
         {isQueued && (
           <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/10">
-            <div className="w-4 h-4 rounded-full bg-brand-gradient animate-pulse" />
+            <div className="w-4 h-4 rounded-full bg-primary animate-pulse" />
           </div>
         )}
 
@@ -176,7 +176,7 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
 
         {isQueued && (
           <Button size="sm" variant="outline" disabled className="gap-1.5 border-amber-400/30 text-amber-600 bg-amber-500/5">
-            <div className="w-3 h-3 rounded-full bg-brand-gradient animate-pulse" />
+            <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
             Queued
           </Button>
         )}

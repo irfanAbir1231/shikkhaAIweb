@@ -96,12 +96,12 @@ export default function LibraryPage() {
       <Reveal>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gradient">Library</h1>
+            <h1 className="font-heading text-3xl font-bold tracking-tight">Library</h1>
             <p className="text-muted-foreground">Your saved notes and quizzes</p>
           </div>
           <Dialog open={newNoteOpen} onOpenChange={setNewNoteOpen}>
             <DialogTrigger>
-              <Button variant="gradient">
+              <Button>
                 <Plus className="w-4 h-4 mr-1" />
                 New Note
               </Button>
@@ -122,10 +122,10 @@ export default function LibraryPage() {
 
       <Tabs defaultValue="notes">
         <TabsList className="glass">
-          <TabsTrigger value="notes" className="data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
+          <TabsTrigger value="notes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Notes
           </TabsTrigger>
-          <TabsTrigger value="quizzes" className="data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
+          <TabsTrigger value="quizzes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Saved Quizzes
           </TabsTrigger>
         </TabsList>
@@ -150,8 +150,8 @@ export default function LibraryPage() {
           ) : !filteredNotes || filteredNotes.length === 0 ? (
             <Card variant="glass">
               <CardContent className="p-12 text-center">
-                <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-4 shadow-glow">
-                  <BookOpen className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-6 h-6 text-primary" />
                 </div>
                 <p className="text-muted-foreground font-medium">No notes yet.</p>
                 <p className="text-sm text-muted-foreground">
@@ -264,15 +264,15 @@ function SavedQuizzesTab() {
     return (
       <Card variant="glass">
         <CardContent className="p-12 text-center">
-          <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-4 shadow-glow">
-            <FileText className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-6 h-6 text-primary" />
           </div>
           <h3 className="text-lg font-semibold mb-2">No Saved Quizzes</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
             Save exams from your history or result page to revisit them later.
           </p>
           <Link href="/exam/history" className="inline-block mt-4">
-            <Button variant="gradient">Go to Exam History</Button>
+            <Button>Go to Exam History</Button>
           </Link>
         </CardContent>
       </Card>

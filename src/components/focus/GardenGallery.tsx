@@ -27,7 +27,7 @@ export function GardenGallery() {
         <StaggerItem>
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-gradient">{totalSessionsCompleted}</div>
+              <div className="text-2xl font-bold text-primary">{totalSessionsCompleted}</div>
               <p className="text-xs text-muted-foreground">Sessions Completed</p>
             </CardContent>
           </Card>
@@ -54,7 +54,7 @@ export function GardenGallery() {
         <StaggerItem>
           <Card variant="glass">
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-gradient">{plants.length}</div>
+              <div className="text-2xl font-bold text-primary">{plants.length}</div>
               <p className="text-xs text-muted-foreground">Plants Grown</p>
             </CardContent>
           </Card>
@@ -64,7 +64,7 @@ export function GardenGallery() {
       {/* Plants grid */}
       {plants.length === 0 ? (
         <Card variant="glass" className="p-12 text-center">
-          <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-3 shadow-glow">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
             <Sprout className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-lg font-semibold">Your garden is empty</h3>

@@ -81,8 +81,8 @@ export function SpacesGrid({ spaces, isLoading }: SpacesGridProps) {
     return (
       <Card variant="glass">
         <CardContent className="p-12 text-center">
-          <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-4 shadow-glow">
-            <BookOpen className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-6 h-6 text-primary" />
           </div>
           <p className="text-muted-foreground font-medium">No study spaces yet</p>
           <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">

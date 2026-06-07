@@ -109,8 +109,8 @@ function EmptyState() {
     <Reveal>
       <Card variant="glass" className="text-center py-14">
         <CardContent className="space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-brand-gradient grid place-items-center shadow-glow">
-            <Brain className="w-8 h-8 text-white" />
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 grid place-items-center">
+            <Brain className="w-8 h-8 text-primary" />
           </div>
           <div className="space-y-1">
             <h3 className="text-lg font-semibold">No analytics yet</h3>
@@ -120,10 +120,9 @@ function EmptyState() {
             </p>
           </div>
           <Button
-            variant="gradient"
             size="lg"
             onClick={() => router.push('/exam/config')}
-            className="shadow-glow hover:shadow-glow-lg transition-all"
+            className="transition-all"
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Start Your First Exam
@@ -145,7 +144,7 @@ function TabEmptyState({
 }) {
   return (
     <div className="text-center py-14 space-y-4">
-      <div className="mx-auto w-14 h-14 rounded-2xl bg-brand-gradient/10 grid place-items-center">
+      <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 grid place-items-center">
         <Icon className="w-7 h-7 text-primary" />
       </div>
       <div className="space-y-1">
@@ -216,8 +215,7 @@ function PracticeSuggestionCard({ suggestion }: { suggestion: PracticeSuggestion
         </div>
         <Button
           size="sm"
-          variant="gradient"
-          className="w-full shadow-glow hover:shadow-glow-lg transition-all"
+          className="w-full transition-all"
           onClick={handlePractice}
         >
           Practice Now
@@ -269,7 +267,7 @@ export default function AnalyticsPage() {
         <Reveal>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-3xl font-bold text-gradient">Analytics</h1>
+              <h1 className="font-heading text-3xl font-bold tracking-tight">Analytics</h1>
               <p className="text-muted-foreground">Deep insights into your learning journey</p>
             </div>
             <div className="flex gap-2">
@@ -281,7 +279,7 @@ export default function AnalyticsPage() {
                   onClick={() => setTimeRange(range.value)}
                   className={
                     timeRange === range.value
-                      ? 'shadow-glow'
+                      ? 'ring-2 ring-primary/20'
                       : 'glass border-0 hover:bg-primary/10'
                   }
                 >

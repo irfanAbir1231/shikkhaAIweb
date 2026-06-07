@@ -70,7 +70,7 @@ export default function RegisterPage() {
     <Card variant="glass" className="border-0 shadow-soft">
       {/* Mobile-only logo */}
       <CardHeader className="text-center pb-2">
-        <div className="lg:hidden mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow">
+        <div className="lg:hidden mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
           <GraduationCap className="size-7" />
         </div>
         <CardTitle className="text-2xl font-bold">Create account</CardTitle>
@@ -87,7 +87,7 @@ export default function RegisterPage() {
               autoFocus
               aria-invalid={errors.name ? 'true' : 'false'}
               aria-describedby={errors.name ? 'name-error' : undefined}
-              className="h-11 transition-all duration-200 focus-visible:scale-[1.01] focus-visible:shadow-glow"
+              className="h-11 transition-all duration-200 focus-visible:scale-[1.01]"
               {...register('name')}
             />
             {errors.name && (
@@ -106,7 +106,7 @@ export default function RegisterPage() {
               autoComplete="email"
               aria-invalid={errors.email ? 'true' : 'false'}
               aria-describedby={errors.email ? 'email-error' : undefined}
-              className="h-11 transition-all duration-200 focus-visible:scale-[1.01] focus-visible:shadow-glow"
+              className="h-11 transition-all duration-200 focus-visible:scale-[1.01]"
               {...register('email')}
             />
             {errors.email && (
@@ -127,7 +127,7 @@ export default function RegisterPage() {
                 id="grade"
                 aria-invalid={errors.grade_level ? 'true' : 'false'}
                 aria-describedby={errors.grade_level ? 'grade-error' : undefined}
-                className="h-11 transition-all duration-200 focus:scale-[1.01] focus:shadow-glow"
+                className="h-11 transition-all duration-200 focus:scale-[1.01]"
               >
                 <SelectValue placeholder="Select your grade" />
               </SelectTrigger>
@@ -155,7 +155,7 @@ export default function RegisterPage() {
               autoComplete="new-password"
               aria-invalid={errors.password ? 'true' : 'false'}
               aria-describedby={errors.password ? 'password-error' : undefined}
-              className="h-11 transition-all duration-200 focus-visible:scale-[1.01] focus-visible:shadow-glow"
+              className="h-11 transition-all duration-200 focus-visible:scale-[1.01]"
               {...register('password')}
             />
             {errors.password && (

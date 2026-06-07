@@ -20,8 +20,7 @@ export function GradientText<T extends React.ElementType = "span">({
   return (
     <Comp
       className={cn(
-        "text-gradient",
-        animated && "bg-brand-gradient-animated bg-clip-text",
+        "font-heading text-foreground",
         className
       )}
       {...props}

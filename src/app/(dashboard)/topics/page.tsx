@@ -49,14 +49,14 @@ export default function TopicsMasteryPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">Topics Mastery</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Topics Mastery</h1>
           <p className="text-muted-foreground">Track your progress across all subjects and chapters</p>
         </div>
         <Card variant="glass">
           <CardContent className="p-8 text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow">
-                <AlertCircle className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-primary" />
               </div>
             </div>
             <div className="space-y-1">
@@ -83,7 +83,7 @@ export default function TopicsMasteryPage() {
       <Reveal>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gradient">Topics Mastery</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Topics Mastery</h1>
             <p className="text-muted-foreground">Track your progress across all subjects and chapters</p>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -129,8 +129,8 @@ export default function TopicsMasteryPage() {
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shrink-0 shadow-glow">
-                        <Trophy className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Trophy className="w-6 h-6 text-primary" />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold">Overall Progress</h3>
@@ -147,7 +147,7 @@ export default function TopicsMasteryPage() {
                       {isLoading ? (
                         <div className="text-3xl font-bold text-muted-foreground">...</div>
                       ) : (
-                        <span className="text-3xl font-bold tabular-nums text-gradient">{overallPercentage}%</span>
+                        <span className="text-3xl font-bold tabular-nums text-primary">{overallPercentage}%</span>
                       )}
                     </div>
                   </div>
@@ -179,11 +179,11 @@ export default function TopicsMasteryPage() {
                     onClick={() => setActiveTab('path')}
                     className="text-left w-full group"
                   >
-                    <Card variant="glass" className="h-full transition-all hover:border-primary/40 hover:shadow-glow">
+                    <Card variant="glass" className="h-full transition-all hover:border-primary/20 hover:shadow-soft">
                       <CardContent className="p-5 space-y-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                            <Route className="w-4 h-4 text-white" />
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Route className="w-4 h-4 text-primary" />
                           </div>
                           <h4 className="font-semibold">Learning Path</h4>
                         </div>
@@ -199,11 +199,11 @@ export default function TopicsMasteryPage() {
                     onClick={() => setActiveTab('insights')}
                     className="text-left w-full group"
                   >
-                    <Card variant="glass" className="h-full transition-all hover:border-primary/40 hover:shadow-glow">
+                    <Card variant="glass" className="h-full transition-all hover:border-primary/20 hover:shadow-soft">
                       <CardContent className="p-5 space-y-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                            <Network className="w-4 h-4 text-white" />
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Network className="w-4 h-4 text-primary" />
                           </div>
                           <h4 className="font-semibold">Knowledge Graph</h4>
                         </div>
@@ -219,11 +219,11 @@ export default function TopicsMasteryPage() {
                     onClick={() => setActiveTab('subjects')}
                     className="text-left w-full group"
                   >
-                    <Card variant="glass" className="h-full transition-all hover:border-primary/40 hover:shadow-glow">
+                    <Card variant="glass" className="h-full transition-all hover:border-primary/20 hover:shadow-soft">
                       <CardContent className="p-5 space-y-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                            <GraduationCap className="w-4 h-4 text-white" />
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <GraduationCap className="w-4 h-4 text-primary" />
                           </div>
                           <h4 className="font-semibold">Subjects</h4>
                         </div>
@@ -245,8 +245,8 @@ export default function TopicsMasteryPage() {
                 <Card variant="glass">
                   <CardHeader>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                        <Route className="w-4 h-4 text-white" />
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Route className="w-4 h-4 text-primary" />
                       </div>
                       <CardTitle>Recommended Learning Path</CardTitle>
                     </div>
@@ -270,8 +270,8 @@ export default function TopicsMasteryPage() {
                   <Card variant="glass">
                     <CardHeader>
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                          <Network className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Network className="w-4 h-4 text-primary" />
                         </div>
                         <CardTitle>Knowledge Graph</CardTitle>
                       </div>
@@ -287,8 +287,8 @@ export default function TopicsMasteryPage() {
                   <Card variant="glass">
                     <CardHeader>
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                          <LayoutGrid className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <LayoutGrid className="w-4 h-4 text-primary" />
                         </div>
                         <CardTitle>Topic Progress Map</CardTitle>
                       </div>
@@ -312,8 +312,8 @@ export default function TopicsMasteryPage() {
             ) : !data || data.subjects.length === 0 ? (
               <Card variant="glass">
                 <CardContent className="p-8 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto shadow-glow">
-                    <BookOpen className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
+                    <BookOpen className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold">No topics found</h3>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">

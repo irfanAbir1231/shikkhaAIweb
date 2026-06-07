@@ -200,11 +200,11 @@ export default function StudyCompanionPage() {
       <div className="border-b glass px-4 py-3 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight text-gradient">Study Companion</h1>
+              <h1 className="font-heading text-lg font-bold leading-tight">Study Companion</h1>
               <p className="text-xs text-muted-foreground hidden sm:block">
                 AI tutor for your curriculum
               </p>
@@ -218,7 +218,7 @@ export default function StudyCompanionPage() {
                 variant={mode === m.value ? 'default' : 'outline'}
                 className={cn(
                   'cursor-pointer select-none transition-colors',
-                  mode === m.value && 'bg-brand-gradient text-white border-0 shadow-glow'
+                  mode === m.value && 'bg-primary text-primary-foreground border-0'
                 )}
                 role="button"
                 tabIndex={0}
@@ -250,7 +250,7 @@ export default function StudyCompanionPage() {
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full text-center px-2">
-            <div className="w-16 h-16 rounded-2xl bg-brand-gradient flex items-center justify-center mb-4 shadow-glow">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-xl font-semibold mb-2">How can I help you study?</h2>
@@ -283,7 +283,7 @@ export default function StudyCompanionPage() {
                 )}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-gradient flex items-center justify-center shrink-0 mt-1 shadow-glow">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
                     <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   </div>
                 )}
@@ -359,7 +359,7 @@ export default function StudyCompanionPage() {
             ))}
             {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
               <div className="flex gap-2 sm:gap-3 justify-start">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-gradient flex items-center justify-center shrink-0 mt-1 shadow-glow">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
                   <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                 </div>
                 <Card className="glass p-3">

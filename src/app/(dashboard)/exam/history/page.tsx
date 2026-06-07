@@ -167,7 +167,7 @@ function EmptyState() {
     <Reveal>
       <Card variant="glass" className="text-center py-14">
         <CardContent className="space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-brand-gradient grid place-items-center shadow-glow">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 grid place-items-center">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <div className="space-y-1">
@@ -180,7 +180,7 @@ function EmptyState() {
             variant="gradient"
             size="lg"
             onClick={() => router.push('/exam/config')}
-            className="shadow-glow hover:shadow-glow-lg transition-all"
+            className="transition-all"
           >
             <Wand2 className="w-4 h-4 mr-2" />
             Generate Your First Exam
@@ -259,7 +259,7 @@ export default function ExamHistoryPage() {
         {/* Header */}
         <Reveal>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-gradient">Exam History</h1>
+            <h1 className="font-heading text-3xl font-bold tracking-tight">Exam History</h1>
             <p className="text-muted-foreground">
               Review your past attempts and track your growth
             </p>
@@ -300,7 +300,7 @@ export default function ExamHistoryPage() {
         <Reveal delay={0.1}>
           <Card variant="glass">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gradient">
+              <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-primary" />
                 Recent Attempts
               </CardTitle>

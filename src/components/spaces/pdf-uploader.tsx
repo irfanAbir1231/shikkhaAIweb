@@ -119,7 +119,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
         onClick={() => !isUploading && inputRef.current?.click()}
         className={cn(
           'relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all',
-          isDragging && !isUploading && 'border-brand-from bg-brand-from/5 shadow-glow',
+          isDragging && !isUploading && 'border-primary bg-primary/5',
           !isDragging && !isUploading && 'border-border/50 glass hover:bg-muted/20 hover:border-brand-from/30',
           isUploading && 'cursor-not-allowed opacity-60'
         )}
@@ -130,7 +130,7 @@ export function PdfUploader({ spaceId }: PdfUploaderProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
               <Upload className="w-6 h-6 text-white" />
             </div>
             <div>

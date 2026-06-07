@@ -368,8 +368,8 @@ export default function ExamResultPage() {
             {/* Celebratory ambient glow */}
             {isGreatScore && !reduce && (
               <>
-                <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-brand-gradient opacity-20 blur-3xl animate-pulse-glow" />
-                <div className="pointer-events-none absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-brand-gradient opacity-15 blur-3xl animate-float-slow" />
+                <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-primary/5 blur-3xl" />
               </>
             )}
 

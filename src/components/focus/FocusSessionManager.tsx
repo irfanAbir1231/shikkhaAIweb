@@ -117,7 +117,7 @@ export function FocusSessionManager({
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
-                <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Timer className="w-4 h-4 text-white" />
                 </div>
                 Start Focus Session
@@ -167,7 +167,7 @@ export function FocusSessionManager({
                   />
                 </div>
               </div>
-              <Button size="lg" variant="gradient" className="w-full gap-2 shadow-glow" onClick={handleStart}>
+              <Button size="lg" className="w-full gap-2" onClick={handleStart}>
                 <Timer className="w-5 h-5" />
                 Start Session
               </Button>

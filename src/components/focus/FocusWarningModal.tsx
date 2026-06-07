@@ -46,7 +46,7 @@ export function FocusWarningModal({
             }
           >
             <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-brand-gradient flex items-center justify-center shadow-glow">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
                 <AlertTriangle className="w-7 h-7 text-white" />
               </div>
               <div>

@@ -238,7 +238,7 @@ export default function StudyPlanPage() {
       <Reveal>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gradient">Study Plan</h1>
+            <h1 className="font-heading text-3xl font-bold tracking-tight">Study Plan</h1>
             <p className="text-muted-foreground">AI-generated study schedules with task tracking</p>
           </div>
           <Button onClick={() => setGenerateOpen(true)} variant="gradient">
@@ -261,7 +261,7 @@ export default function StudyPlanPage() {
       {plans.length === 0 ? (
         <Card variant="glass">
           <CardContent className="p-12 text-center">
-            <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-4 shadow-glow">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-6 h-6 text-white" />
             </div>
             <p className="text-muted-foreground font-medium">No study plans yet</p>
@@ -311,7 +311,7 @@ export default function StudyPlanPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium text-gradient">{plan.progress}%</span>
+                      <span className="font-medium text-primary">{plan.progress}%</span>
                     </div>
                     <Progress value={plan.progress} className="h-2" />
 
@@ -345,7 +345,7 @@ export default function StudyPlanPage() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               Generate Study Plan
@@ -551,7 +551,7 @@ export default function StudyPlanPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label>Daily Study Hours</Label>
-                <span className="text-sm font-medium text-gradient">{dailyHours} hrs</span>
+                <span className="text-sm font-medium text-primary">{dailyHours} hrs</span>
               </div>
               <Slider
                 value={[dailyHours]}
@@ -637,7 +637,7 @@ function StudyPlanDetailDialog({
           {/* Overview */}
           <div className="grid grid-cols-3 gap-3 mt-4">
             <div className="rounded-xl glass p-3 text-center">
-              <p className="text-2xl font-bold text-gradient">{plan.progress}%</p>
+              <p className="text-2xl font-bold text-primary">{plan.progress}%</p>
               <p className="text-xs text-muted-foreground">Complete</p>
             </div>
             <div className="rounded-xl glass p-3 text-center">
@@ -668,7 +668,7 @@ function StudyPlanDetailDialog({
                       className={cn(
                         'flex flex-col items-center min-w-[60px] px-2 py-1.5 rounded-lg text-xs transition-all',
                         activeDay === s.day
-                          ? 'bg-brand-gradient text-white shadow-glow'
+                          ? 'bg-primary text-primary-foreground'
                           : allDone
                           ? 'bg-green-500/10 text-green-600 border border-green-400/20'
                           : 'glass text-muted-foreground hover:bg-muted/50'

@@ -31,26 +31,26 @@ export function AIInsightCard({
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        "border-gradient relative overflow-hidden rounded-2xl bg-card/60 p-5 backdrop-blur-md",
+        "relative overflow-hidden rounded-2xl border border-border/40 bg-card/60 p-5 backdrop-blur-md",
         className
       )}
     >
-      {/* ambient corner glow */}
+      {/* subtle corner accent */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full bg-brand-gradient opacity-20 blur-2xl"
+        className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full bg-primary/10 blur-2xl"
       />
       <div className="relative flex items-start gap-3">
         <span
           className={cn(
-            "mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl bg-brand-gradient text-white",
-            pulse && !reduce && "animate-pulse-glow"
+            "mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary",
+            pulse && !reduce && "ring-2 ring-primary/20"
           )}
         >
           <Sparkles className="size-4" />
         </span>
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-xs font-semibold tracking-wide text-gradient uppercase">
+          <p className="text-xs font-semibold tracking-wide text-primary uppercase">
             {title}
           </p>
           <div className="text-sm leading-relaxed text-foreground/90">

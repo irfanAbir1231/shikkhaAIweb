@@ -161,7 +161,7 @@ function TopicAutocomplete({
       </div>
 
       {showSuggestions && (
-        <div className="absolute z-50 w-full mt-1 rounded-xl glass shadow-glow ring-0">
+        <div className="absolute z-50 w-full mt-1 rounded-xl glass ring-0">
           <ScrollArea className="max-h-60">
             <div className="p-1">
               {isLoading && (
@@ -378,7 +378,7 @@ function ExamConfigForm() {
         {/* Header */}
         <Reveal>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-gradient">Generate Exam</h1>
+            <h1 className="font-heading text-3xl font-bold tracking-tight">Generate Exam</h1>
             <p className="text-muted-foreground">
               Configure your personalized practice exam
             </p>
@@ -396,7 +396,7 @@ function ExamConfigForm() {
           <Reveal delay={0.05}>
             <Card variant="glass" className="overflow-visible">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gradient">
+                <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5 text-primary" />
                   Subject &amp; Topic
                 </CardTitle>
@@ -421,7 +421,7 @@ function ExamConfigForm() {
                           }}
                           className={
                             active
-                              ? 'shadow-glow'
+                              ? 'ring-2 ring-primary/20'
                               : 'border-foreground/10 hover:border-primary/30 hover:bg-primary/5'
                           }
                         >
@@ -568,7 +568,7 @@ function ExamConfigForm() {
                                   }}
                                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                                     selected
-                                      ? 'bg-brand-gradient text-white border-transparent shadow-glow'
+                                      ? 'bg-primary text-primary-foreground border-transparent'
                                       : 'glass text-muted-foreground border-foreground/10 hover:border-primary/30 hover:text-foreground'
                                   }`}
                                 >
@@ -590,7 +590,7 @@ function ExamConfigForm() {
           <Reveal delay={0.15}>
             <Card variant="glass">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gradient">
+                <CardTitle className="flex items-center gap-2">
                   <HelpCircle className="w-5 h-5 text-primary" />
                   Exam Settings
                 </CardTitle>
@@ -608,7 +608,7 @@ function ExamConfigForm() {
                           type="button"
                           variant={active ? 'gradient' : 'outline'}
                           className={`flex-1 capitalize ${
-                            active ? 'shadow-glow' : 'border-foreground/10 hover:border-primary/30'
+                            active ? 'ring-2 ring-primary/20' : 'border-foreground/10 hover:border-primary/30'
                           }`}
                           onClick={() => setValue('difficulty', diff)}
                         >
@@ -679,7 +679,7 @@ function ExamConfigForm() {
               type="submit"
               variant="gradient"
               size="xl"
-              className="w-full shadow-glow hover:shadow-glow-lg transition-all"
+              className="w-full transition-all"
               disabled={isLoading}
             >
               {isLoading ? (

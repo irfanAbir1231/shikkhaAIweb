@@ -21,7 +21,7 @@ type StatCardProps = {
 };
 
 const toneMap = {
-  brand: "from-brand-from to-brand-to text-white",
+  brand: "bg-primary/10 text-primary",
   success: "bg-success/15 text-success",
   warning: "bg-warning/15 text-warning",
   muted: "bg-muted text-muted-foreground",
@@ -91,7 +91,7 @@ export function StatCard({
             <span
               className={cn(
                 "grid size-9 place-items-center rounded-xl",
-                isBrand ? "bg-brand-gradient" : toneMap[tone]
+                isBrand ? toneMap.brand : toneMap[tone]
               )}
             >
               <Icon className="size-4" />

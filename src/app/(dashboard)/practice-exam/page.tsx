@@ -132,11 +132,11 @@ function PracticeExamContent() {
     <div className="space-y-6 p-4 md:p-6 max-w-4xl mx-auto">
       <Reveal>
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
             <Brain className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gradient">Adaptive Practice Exam</h1>
+            <h1 className="font-heading text-2xl font-bold tracking-tight">Adaptive Practice Exam</h1>
             <p className="text-muted-foreground text-sm">
               Focus on weak subtopics. More wrong answers = more questions.
             </p>
@@ -162,7 +162,7 @@ function PracticeExamContent() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-3">
-                <label className="text-sm font-medium">Number of Questions: <span className="text-gradient">{numQuestions}</span></label>
+                <label className="text-sm font-medium">Number of Questions: <span className="text-primary font-semibold">{numQuestions}</span></label>
                 <Slider
                   value={[numQuestions]}
                   onValueChange={(v) => setNumQuestions(Array.isArray(v) ? v[0] : v)}
@@ -207,7 +207,7 @@ function PracticeExamContent() {
 
               <Button
                 variant="gradient"
-                className="w-full shadow-glow"
+                className="w-full"
                 size="lg"
                 onClick={handleStart}
                 disabled={generatePractice.isPending || (!!weakSubtopics && weakSubtopics.length === 0)}
@@ -241,7 +241,7 @@ function PracticeExamContent() {
                 </div>
               ) : !weakSubtopics || weakSubtopics.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-3 shadow-glow">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
                     <Brain className="w-6 h-6 text-white" />
                   </div>
                   <p className="text-muted-foreground text-sm font-medium">No weak subtopics found.</p>
@@ -259,7 +259,7 @@ function PracticeExamContent() {
                         <div
                           className={cn(
                             'flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover-lift',
-                            checked ? 'border-primary/40 bg-primary/5 shadow-glow' : 'border-border/40 glass hover:bg-muted/20'
+                            checked ? 'border-primary/40 bg-primary/5' : 'border-border/40 glass hover:bg-muted/20'
                           )}
                           onClick={() => toggleSubtopic(ws.subtopic_id)}
                           role="checkbox"

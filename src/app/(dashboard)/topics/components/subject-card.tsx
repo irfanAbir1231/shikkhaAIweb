@@ -53,7 +53,7 @@ export function SubjectCard({ subject }: SubjectCardProps) {
       <div className="px-5 py-4 border-b border-border/30 glass-strong">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-brand-gradient text-white shrink-0 shadow-glow">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary shrink-0">
               {getSubjectIcon(subject.subject)}
             </div>
             <div className="min-w-0">

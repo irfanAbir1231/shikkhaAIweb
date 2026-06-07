@@ -15,7 +15,7 @@ import { AIInsightCard } from '@/components/ui/ai-insight-card';
 import { StatCard } from '@/components/ui/stat-card';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { AILoader } from '@/components/ui/ai-loader';
-import { GradientText } from '@/components/ui/gradient-text';
+// import { GradientText } from '@/components/ui/gradient-text';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { SimpleLineChart } from '@/components/charts/line-chart';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
@@ -151,11 +151,9 @@ export default function DashboardPage() {
       <Reveal>
         <div className="space-y-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              <GradientText>
-                Hello, {user?.name?.split(' ')[0] || 'Student'}!
-              </GradientText>
-            </h1>
+            <h1 className="font-heading text-3xl font-bold tracking-tight">
+            Hello, {user?.name?.split(' ')[0] || 'Student'}!
+          </h1>
             <p className="mt-1 text-muted-foreground">
               Welcome to your AI Command Center
             </p>
@@ -178,9 +176,7 @@ export default function DashboardPage() {
                   interactive
                   className="flex items-center gap-3 p-4"
                 >
-                  <div
-                    className={`${action.color} rounded-lg p-2 text-white shadow-glow`}
-                  >
+                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
                     <Icon className="size-5" />
                   </div>
                   <span className="text-sm font-medium">{action.label}</span>
@@ -378,9 +374,7 @@ export default function DashboardPage() {
                     Complete more exams to see your progress over time.
                   </p>
                   <Link href="/exam/config">
-                    <Button variant="gradient" size="sm">
-                      Take an Exam
-                    </Button>
+                    <Button size="sm">Take an Exam</Button>
                   </Link>
                 </div>
               ) : (
@@ -412,9 +406,7 @@ export default function DashboardPage() {
                     Practice different topics to build your accuracy profile.
                   </p>
                   <Link href="/exam/config">
-                    <Button variant="gradient" size="sm">
-                      Start Practicing
-                    </Button>
+                    <Button size="sm">Start Practicing</Button>
                   </Link>
                 </div>
               ) : (
@@ -456,9 +448,7 @@ export default function DashboardPage() {
                   Practice different topics to visualize your knowledge network.
                 </p>
                 <Link href="/exam/config">
-                  <Button variant="gradient" size="sm">
-                    Start Practicing
-                  </Button>
+                  <Button size="sm">Start Practicing</Button>
                 </Link>
               </div>
             ) : (
@@ -500,9 +490,7 @@ export default function DashboardPage() {
                   Start your learning journey with a practice exam.
                 </p>
                 <Link href="/exam/config">
-                  <Button variant="gradient" size="sm">
-                    Take First Exam
-                  </Button>
+                  <Button size="sm">Take First Exam</Button>
                 </Link>
               </div>
             ) : (
@@ -574,9 +562,7 @@ export default function DashboardPage() {
                 Complete more activities to receive AI-powered learning tips.
               </p>
               <Link href="/study-companion">
-                <Button variant="gradient" size="sm">
-                  Ask AI Companion
-                </Button>
+                <Button size="sm">Ask AI Companion</Button>
               </Link>
             </div>
           </Reveal>

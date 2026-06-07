@@ -66,13 +66,13 @@ export default function WeakSubtopicsPage() {
       <Reveal>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gradient">Weak Subtopics</h1>
+            <h1 className="font-heading text-2xl font-bold tracking-tight">Weak Subtopics</h1>
             <p className="text-muted-foreground mt-1">
               Focus your practice on these specific areas to improve mastery.
             </p>
           </div>
           <Link href="/practice-exam" className="inline-flex">
-            <Button variant="gradient" className="shadow-glow">
+            <Button>
               <Target className="w-4 h-4 mr-2" />
               Start Adaptive Practice
             </Button>
@@ -99,7 +99,7 @@ export default function WeakSubtopicsPage() {
       {!isLoading && (!weakSubtopics || weakSubtopics.length === 0) && (
         <Card variant="glass">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mb-4 shadow-glow">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-lg font-semibold">No Weak Subtopics!</h3>

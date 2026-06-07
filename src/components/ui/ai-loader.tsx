@@ -43,12 +43,12 @@ export function AILoader({
     <span className="relative grid place-items-center">
       <motion.span
         aria-hidden
-        className="absolute size-12 rounded-full bg-brand-gradient opacity-30 blur-md"
+        className="absolute size-12 rounded-full bg-primary/20 blur-md"
         animate={reduce ? undefined : { scale: [1, 1.25, 1] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.span
-        className="relative grid size-11 place-items-center rounded-2xl bg-brand-gradient text-white shadow-glow"
+        className="relative grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary"
         animate={reduce ? undefined : { rotate: [0, 8, -8, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -64,7 +64,7 @@ export function AILoader({
         role="status"
         aria-label={label ?? "Loading"}
       >
-        <span className="relative grid size-6 place-items-center rounded-lg bg-brand-gradient text-white">
+        <span className="relative grid size-6 place-items-center rounded-lg bg-primary/10 text-primary">
           <Brain className="size-3.5" />
         </span>
         {label && <span className="text-sm text-muted-foreground">{label}</span>}

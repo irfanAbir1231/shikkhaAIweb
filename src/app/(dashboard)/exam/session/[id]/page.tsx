@@ -340,7 +340,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
                   className={cn(
                     'shrink-0 h-8 w-8 rounded-lg text-xs font-medium transition-all flex items-center justify-center',
                     isCurrent
-                      ? 'bg-primary text-primary-foreground shadow-glow ring-2 ring-primary/30'
+                      ? 'bg-primary text-primary-foreground ring-2 ring-primary/30'
                       : isAnswered
                         ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                         : 'bg-muted/50 text-muted-foreground border border-border/50'
@@ -401,7 +401,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
                             className={cn(
                               'group relative flex items-start gap-4 p-4 lg:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200',
                               isSelected
-                                ? 'border-primary bg-primary/5 shadow-glow'
+                                ? 'border-primary bg-primary/5'
                                 : 'border-border/40 bg-card/20 hover:border-primary/25 hover:bg-muted/15 hover:-translate-y-0.5 hover:shadow-soft'
                             )}
                             onClick={() => setAnswer(question.id, option)}
@@ -478,7 +478,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
                   }}
                   variant="gradient"
                   size="lg"
-                  className="gap-2 shadow-glow"
+                  className="gap-2"
                   disabled={isSubmitting}
                 >
                   <span className="hidden sm:inline">Submit Exam</span>
@@ -512,7 +512,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
                       className={cn(
                         'h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center',
                         isCurrent
-                          ? 'bg-primary text-primary-foreground shadow-glow ring-2 ring-primary/30'
+                          ? 'bg-primary text-primary-foreground ring-2 ring-primary/30'
                           : isAnswered
                             ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
                             : 'bg-card/60 text-muted-foreground border border-border/50 hover:border-primary/30 hover:text-foreground'

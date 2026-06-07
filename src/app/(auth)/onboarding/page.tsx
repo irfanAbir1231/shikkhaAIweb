@@ -63,7 +63,7 @@ export default function OnboardingPage() {
         {/* Header: logo + skip */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2.5">
-            <span className="grid size-9 place-items-center rounded-xl bg-brand-gradient text-white shadow-glow">
+            <span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
               <GraduationCap className="size-5" />
             </span>
             <span className="text-lg font-bold">ShikkhaAI</span>
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
                     className={
                       'grid size-8 place-items-center rounded-full text-xs font-semibold transition-all duration-300 ' +
                       (isCompleted
-                        ? 'bg-brand-gradient text-white shadow-glow'
+                        ? 'bg-primary text-primary-foreground'
                         : isCurrent
                           ? 'bg-primary text-primary-foreground ring-2 ring-primary/30'
                           : 'bg-muted text-muted-foreground')

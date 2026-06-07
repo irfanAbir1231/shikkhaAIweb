@@ -52,7 +52,7 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gradient">
+            <h1 className="font-heading text-2xl font-bold tracking-tight">
               {space?.name ?? 'Study Space'}
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -74,8 +74,8 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
         <Card variant="glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                <FileText className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-primary" />
               </div>
               Upload PDF Document
             </CardTitle>
@@ -91,8 +91,8 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
         <Card variant="glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                <BookOpen className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-primary" />
               </div>
               Documents
               {!spaceLoading && (
@@ -118,8 +118,8 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
               </div>
             ) : documents.length === 0 ? (
               <div className="text-center py-10">
-                <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-3 shadow-glow">
-                  <FileText className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <FileText className="w-6 h-6 text-primary" />
                 </div>
                 <p className="text-muted-foreground font-medium">No documents yet</p>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -134,8 +134,8 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
                       <div
                         className="flex items-center gap-3 p-3 rounded-xl glass hover-lift transition-all"
                       >
-                        <div className="w-9 h-9 rounded-lg bg-brand-gradient flex items-center justify-center shrink-0 shadow-glow">
-                          <FileText className="w-4 h-4 text-white" />
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <FileText className="w-4 h-4 text-primary" />
                         </div>
 
                         <div className="flex-1 min-w-0">

@@ -164,11 +164,11 @@ export function Sidebar() {
         {/* ---------- Header ---------- */}
         <div className={cn('flex items-center h-14 shrink-0', collapsed ? 'justify-center px-2' : 'px-3 gap-2')}>
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow shrink-0">
-              <GraduationCap className="w-[18px] h-[18px] text-white" />
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <GraduationCap className="w-[18px] h-[18px] text-primary" />
             </div>
             {!collapsed && (
-              <span className="text-lg font-bold text-gradient truncate">ShikkhaAI</span>
+              <span className="font-heading text-lg font-bold truncate">ShikkhaAI</span>
             )}
           </Link>
 
@@ -335,10 +335,10 @@ export function MobileSidebar() {
           {/* Header */}
           <div className="flex items-center h-14 px-4 gap-2">
             <Link href="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-              <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                <GraduationCap className="w-[18px] h-[18px] text-white" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <GraduationCap className="w-[18px] h-[18px] text-primary" />
               </div>
-              <span className="text-lg font-bold text-gradient">ShikkhaAI</span>
+              <span className="font-heading text-lg font-bold">ShikkhaAI</span>
             </Link>
           </div>
 

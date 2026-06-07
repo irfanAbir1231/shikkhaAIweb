@@ -36,7 +36,7 @@ export default function PersonalizedNotesPage() {
       <Reveal>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-gradient">
+            <h1 className="font-heading text-2xl font-bold tracking-tight">
               Personalized Notes
             </h1>
             <p className="text-muted-foreground">
@@ -49,11 +49,11 @@ export default function PersonalizedNotesPage() {
       <Tabs defaultValue="focused" className="w-full">
         <Reveal delay={0.1}>
           <TabsList className="glass">
-            <TabsTrigger value="focused" className="gap-2 data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
+            <TabsTrigger value="focused" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Sparkles className="w-3.5 h-3.5" />
               Focused Notes
             </TabsTrigger>
-            <TabsTrigger value="saved" className="gap-2 data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
+            <TabsTrigger value="saved" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Bookmark className="w-3.5 h-3.5" />
               Saved Notes
             </TabsTrigger>
@@ -84,7 +84,7 @@ export default function PersonalizedNotesPage() {
             <Reveal>
               <Card variant="glass" className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16">
-                  <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mb-5 shadow-glow">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                     <FileText className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold">No Focused Notes Yet</h3>
@@ -167,7 +167,7 @@ export default function PersonalizedNotesPage() {
             <Reveal>
               <Card variant="glass" className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16">
-                  <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mb-5 shadow-glow">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
                     <BookOpen className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold">No Saved Notes</h3>
