@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Reveal } from '@/components/motion/reveal';
-import { BookOpen, GraduationCap, Timer, BookMarked } from 'lucide-react';
+import { BookOpen, GraduationCap, Timer, BookMarked, Brain, Target, Sparkles, Lightbulb, Eye } from 'lucide-react';
 import type { StartFocusSessionInput } from '@/lib/types/focus-session';
 
 const GRACE_MS = 10_000;
@@ -110,70 +110,123 @@ export function FocusSessionManager({
   }, [actions]);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="space-y-8">
       {/* Setup Card */}
       {!isRunning && !sessionCompleted && (
-        <Reveal>
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Timer className="w-4 h-4 text-white" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Reveal>
+            <Card variant="glass">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Timer className="w-4 h-4 text-primary" />
+                  </div>
+                  Start Focus Session
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {initialTopic && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground glass rounded-xl px-3 py-2">
+                    <BookMarked className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span className="truncate">{initialTopic}</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Session Mode</Label>
+                    <Select value={mode} onValueChange={(v) => setMode(v as StartFocusSessionInput['mode'])}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="study">
+                          <span className="flex items-center gap-2">
+                            <BookOpen className="w-4 h-4" /> Study
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="exam">
+                          <span className="flex items-center gap-2">
+                            <GraduationCap className="w-4 h-4" /> Exam
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="pomodoro">
+                          <span className="flex items-center gap-2">
+                            <Timer className="w-4 h-4" /> Pomodoro
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Duration (minutes)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={180}
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                    />
+                  </div>
                 </div>
-                Start Focus Session
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              {initialTopic && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground glass rounded-xl px-3 py-2">
-                  <BookMarked className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span className="truncate">{initialTopic}</span>
+                <Button size="lg" className="w-full gap-2" onClick={handleStart}>
+                  <Timer className="w-5 h-5" />
+                  Start Session
+                </Button>
+              </CardContent>
+            </Card>
+          </Reveal>
+
+          <Reveal>
+            <Card variant="glass" className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <Lightbulb className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  How It Works
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Target className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Set your goal</p>
+                    <p className="text-xs text-muted-foreground">Choose a mode and duration that fits your study plan.</p>
+                  </div>
                 </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Session Mode</Label>
-                  <Select value={mode} onValueChange={(v) => setMode(v as StartFocusSessionInput['mode'])}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="study">
-                        <span className="flex items-center gap-2">
-                          <BookOpen className="w-4 h-4" /> Study
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="exam">
-                        <span className="flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4" /> Exam
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="pomodoro">
-                        <span className="flex items-center gap-2">
-                          <Timer className="w-4 h-4" /> Pomodoro
-                        </span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Eye className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Stay on this tab</p>
+                    <p className="text-xs text-muted-foreground">Switching tabs triggers a grace period. Return quickly to keep your session alive.</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Duration (minutes)</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={180}
-                    value={durationMinutes}
-                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                  />
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Grow your garden</p>
+                    <p className="text-xs text-muted-foreground">Complete sessions to evolve your plant. Abandon them and it withers.</p>
+                  </div>
                 </div>
-              </div>
-              <Button size="lg" className="w-full gap-2" onClick={handleStart}>
-                <Timer className="w-5 h-5" />
-                Start Session
-              </Button>
-            </CardContent>
-          </Card>
-        </Reveal>
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Brain className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Integrity score</p>
+                    <p className="text-xs text-muted-foreground">Track your focus habits. Fewer tab switches = higher score.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Reveal>
+        </div>
       )}
 
       {/* Active Session */}
@@ -210,38 +263,46 @@ export function FocusSessionManager({
       {/* Session Results */}
       {sessionCompleted && session && (
         <Reveal>
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle>
-                {session.status === 'completed' ? 'Session Complete!' : 'Session Ended'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <IntegrityScoreCard score={integrityScore} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card variant="glass">
+              <CardHeader>
+                <CardTitle>
+                  {session.status === 'completed' ? 'Session Complete!' : 'Session Ended'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <IntegrityScoreCard score={integrityScore} />
 
-              <div className="flex flex-col items-center gap-4 py-4">
-                <FocusGarden
-                  plant={currentPlant}
-                  isRunning={false}
-                  sessionProgress={100}
-                />
                 {session.status === 'completed' && currentPlant && !currentPlant.withered && (
-                  <p className="text-emerald-600 font-medium">
+                  <p className="text-emerald-600 font-medium text-sm">
                     Your {currentPlant.name} grew into a {currentPlant.type}!
                   </p>
                 )}
                 {session.status !== 'completed' && currentPlant && currentPlant.withered && (
-                  <p className="text-red-500 font-medium">
+                  <p className="text-red-500 font-medium text-sm">
                     Your {currentPlant.name} withered because the session ended early.
                   </p>
                 )}
-              </div>
+                {session.status !== 'completed' && (!currentPlant || !currentPlant.withered) && (
+                  <p className="text-muted-foreground text-sm">
+                    The session was ended before completion. Try again to grow your garden.
+                  </p>
+                )}
 
-              <Button variant="gradient" className="w-full" onClick={handleReset}>
-                Start New Session
-              </Button>
-            </CardContent>
-          </Card>
+                <Button className="w-full" onClick={handleReset}>
+                  Start New Session
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card variant="glass" className="flex flex-col items-center justify-center p-6">
+              <FocusGarden
+                plant={currentPlant}
+                isRunning={false}
+                sessionProgress={100}
+              />
+            </Card>
+          </div>
         </Reveal>
       )}
 

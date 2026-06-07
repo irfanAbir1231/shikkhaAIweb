@@ -1,12 +1,13 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FocusSessionManager } from '@/components/focus/FocusSessionManager';
 import { GardenGallery } from '@/components/focus/GardenGallery';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Reveal } from '@/components/motion/reveal';
 import { Timer, Flower2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function FocusSessionContent() {
   const searchParams = useSearchParams();
@@ -14,9 +15,10 @@ function FocusSessionContent() {
   const durationParam = searchParams.get('duration');
   const duration = durationParam ? Number(durationParam) : undefined;
   const autoStart = searchParams.get('autoStart') === 'true';
+  const [activeTab, setActiveTab] = useState('session');
 
   return (
-    <Tabs defaultValue="session" className="w-full">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid w-full max-w-md grid-cols-2 glass">
         <TabsTrigger value="session" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
           <Timer className="w-4 h-4" />
@@ -28,17 +30,18 @@ function FocusSessionContent() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="session" className="mt-6">
+      {/* Render both panels always; toggle with CSS so state is preserved */}
+      <div className={cn('mt-6', activeTab !== 'session' && 'hidden')}>
         <FocusSessionManager
           initialTopic={topic}
           initialDuration={duration}
           autoStart={autoStart}
         />
-      </TabsContent>
+      </div>
 
-      <TabsContent value="garden" className="mt-6">
+      <div className={cn('mt-6', activeTab !== 'garden' && 'hidden')}>
         <GardenGallery />
-      </TabsContent>
+      </div>
     </Tabs>
   );
 }

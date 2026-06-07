@@ -65,7 +65,7 @@ export function GardenGallery() {
       {plants.length === 0 ? (
         <Card variant="glass" className="p-12 text-center">
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-            <Sprout className="w-6 h-6 text-white" />
+            <Sprout className="w-6 h-6 text-primary" />
           </div>
           <h3 className="text-lg font-semibold">Your garden is empty</h3>
           <p className="text-sm text-muted-foreground mt-1">
