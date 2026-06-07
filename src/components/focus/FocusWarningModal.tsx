@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,16 +22,8 @@ export function FocusWarningModal({
   totalGraceMs,
   onReturnNow,
 }: FocusWarningModalProps) {
-  const [showPulse, setShowPulse] = useState(false);
   const progress = totalGraceMs > 0 ? graceTimeRemainingMs / totalGraceMs : 0;
-
-  useEffect(() => {
-    if (open && graceTimeRemainingMs <= 3000) {
-      setShowPulse(true);
-    } else {
-      setShowPulse(false);
-    }
-  }, [open, graceTimeRemainingMs]);
+  const showPulse = open && graceTimeRemainingMs <= 3000;
 
   return (
     <AnimatePresence>
@@ -47,15 +39,15 @@ export function FocusWarningModal({
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.85, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className={`
-              w-full max-w-sm mx-4 p-6 rounded-2xl bg-background border shadow-2xl
-              text-center space-y-5
-              ${showPulse ? 'ring-2 ring-red-500 animate-pulse' : 'ring-1 ring-border'}
-            `}
+            className={
+              `w-full max-w-sm mx-4 p-6 rounded-2xl glass border shadow-2xl ` +
+              `text-center space-y-5 ` +
+              `${showPulse ? 'ring-2 ring-red-500 animate-pulse' : 'ring-1 ring-border'}`
+            }
           >
             <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
-                <AlertTriangle className="w-7 h-7 text-amber-600" />
+              <div className="w-14 h-14 rounded-full bg-brand-gradient flex items-center justify-center shadow-glow">
+                <AlertTriangle className="w-7 h-7 text-white" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold">Tab Switch Detected</h3>
@@ -86,7 +78,7 @@ export function FocusWarningModal({
                   strokeWidth="5"
                   strokeLinecap="round"
                   strokeDasharray={`${progress * 264} 264`}
-                  className={`transition-all duration-200 ${showPulse ? 'text-red-500' : 'text-amber-500'}`}
+                  className={`transition-all duration-200 ${showPulse ? 'text-red-500' : 'text-brand-from'}`}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
@@ -102,11 +94,11 @@ export function FocusWarningModal({
 
             <Button
               size="lg"
+              variant={showPulse ? 'destructive' : 'gradient'}
               className="w-full gap-2"
-              variant={showPulse ? 'destructive' : 'default'}
               onClick={onReturnNow}
             >
-              I'm Back — Resume Session
+              I&apos;m Back — Resume Session
             </Button>
 
             <p className="text-xs text-muted-foreground">

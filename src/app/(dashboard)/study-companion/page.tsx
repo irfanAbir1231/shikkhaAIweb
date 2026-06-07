@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { EXPLANATION_MODES } from '@/lib/utils/constants';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { AILoader } from '@/components/ui/ai-loader';
+
 import {
   Send,
   Bot,
@@ -20,6 +22,7 @@ import {
   Trash2,
   Sparkles,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const suggestedPrompts = [
   'Explain photosynthesis in simple terms',
@@ -64,29 +67,22 @@ export default function StudyCompanionPage() {
     }
   }, [messages]);
 
-  const handleSend = async (messageText: string = input) => {
+  const idRef = useRef(0);
+
+  const handleSend = useCallback(async (messageText: string = input) => {
     if (!messageText.trim() || !user) return;
 
+    const now = new Date();
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: `u_${++idRef.current}`,
       role: 'user',
       content: messageText,
-      timestamp: new Date().toISOString(),
+      timestamp: now.toISOString(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-
-    const loadingMessage: ChatMessage = {
-      id: 'loading',
-      role: 'assistant',
-      content: '',
-      timestamp: new Date().toISOString(),
-      isLoading: true,
-    };
-
-    setMessages((prev) => [...prev, loadingMessage]);
 
     try {
       const res = await fetch('/api/proxy/study-companion/ask', {
@@ -103,11 +99,9 @@ export default function StudyCompanionPage() {
 
       const data = await res.json();
 
-      setMessages((prev) => prev.filter((m) => m.id !== 'loading'));
-
       if (data.success) {
         const assistantMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
+          id: `a_${++idRef.current}`,
           role: 'assistant',
           content: data.data.response,
           timestamp: new Date().toISOString(),
@@ -118,12 +112,11 @@ export default function StudyCompanionPage() {
         toast.error(data.error?.message || 'Failed to get response');
       }
     } catch {
-      setMessages((prev) => prev.filter((m) => m.id !== 'loading'));
       toast.error('Something went wrong');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, user, mode]);
 
   const clearChat = () => {
     setMessages([]);
@@ -140,14 +133,14 @@ export default function StudyCompanionPage() {
   return (
     <div className="flex flex-col h-full -m-4 lg:-m-8">
       {/* Header */}
-      <div className="border-b px-4 py-3 lg:px-8">
+      <div className="border-b glass px-4 py-3 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-primary" />
+            <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+              <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight">Study Companion</h1>
+              <h1 className="text-lg font-bold leading-tight text-gradient">Study Companion</h1>
               <p className="text-xs text-muted-foreground hidden sm:block">
                 AI tutor for your curriculum
               </p>
@@ -159,7 +152,10 @@ export default function StudyCompanionPage() {
               <Badge
                 key={m.value}
                 variant={mode === m.value ? 'default' : 'outline'}
-                className="cursor-pointer select-none transition-colors"
+                className={cn(
+                  'cursor-pointer select-none transition-colors',
+                  mode === m.value && 'bg-brand-gradient text-white border-0 shadow-glow'
+                )}
                 role="button"
                 tabIndex={0}
                 onClick={() => setMode(m.value)}
@@ -172,7 +168,7 @@ export default function StudyCompanionPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-muted-foreground hover:text-destructive ml-auto sm:ml-0"
+                className="h-7 px-2 text-muted-foreground hover:text-destructive ml-auto sm:ml-0 hover-lift"
                 onClick={clearChat}
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1" />
@@ -190,8 +186,8 @@ export default function StudyCompanionPage() {
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full text-center px-2">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 text-primary" />
+            <div className="w-16 h-16 rounded-2xl bg-brand-gradient flex items-center justify-center mb-4 shadow-glow">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-xl font-semibold mb-2">How can I help you study?</h2>
             <p className="text-muted-foreground mb-6 max-w-md text-sm sm:text-base">
@@ -203,7 +199,7 @@ export default function StudyCompanionPage() {
                 <Button
                   key={prompt}
                   variant="outline"
-                  className="justify-start text-left h-auto py-3 px-4 transition-colors hover:bg-accent whitespace-normal"
+                  className="justify-start text-left h-auto py-3 px-4 transition-colors hover:bg-accent whitespace-normal glass hover-lift"
                   onClick={() => handleSend(prompt)}
                 >
                   <Lightbulb className="w-4 h-4 mr-2 shrink-0 text-amber-500" />
@@ -217,41 +213,34 @@ export default function StudyCompanionPage() {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-2 sm:gap-3 ${
+                className={cn(
+                  'flex gap-2 sm:gap-3',
                   message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
+                )}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                    <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-gradient flex items-center justify-center shrink-0 mt-1 shadow-glow">
+                    <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   </div>
                 )}
                 <Card
-                  className={`max-w-[85%] sm:max-w-[75%] p-2.5 sm:p-3 ${
+                  className={cn(
+                    'max-w-[85%] sm:max-w-[75%] p-2.5 sm:p-3',
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
+                      : 'glass'
+                  )}
                 >
                   {message.isLoading ? (
-                    <div className="flex items-center gap-1.5 py-1">
-                      <div className="w-2 h-2 rounded-full bg-current opacity-60 animate-bounce" />
-                      <div
-                        className="w-2 h-2 rounded-full bg-current opacity-60 animate-bounce"
-                        style={{ animationDelay: '0.15s' }}
-                      />
-                      <div
-                        className="w-2 h-2 rounded-full bg-current opacity-60 animate-bounce"
-                        style={{ animationDelay: '0.3s' }}
-                      />
-                    </div>
+                    <AILoader compact label="Thinking..." />
                   ) : (
                     <div
-                      className={`prose prose-sm max-w-none ${
+                      className={cn(
+                        'prose prose-sm max-w-none',
                         message.role === 'user'
                           ? 'prose-invert prose-p:text-primary-foreground prose-headings:text-primary-foreground prose-strong:text-primary-foreground prose-code:text-primary-foreground prose-code:bg-primary-foreground/20'
                           : 'dark:prose-invert'
-                      }`}
+                      )}
                     >
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {message.content}
@@ -276,12 +265,22 @@ export default function StudyCompanionPage() {
                 )}
               </div>
             ))}
+            {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+              <div className="flex gap-2 sm:gap-3 justify-start">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-brand-gradient flex items-center justify-center shrink-0 mt-1 shadow-glow">
+                  <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                </div>
+                <Card className="glass p-3">
+                  <AILoader compact label="Thinking..." />
+                </Card>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Input */}
-      <div className="border-t p-3 sm:p-4 lg:px-8">
+      <div className="border-t glass p-3 sm:p-4 lg:px-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -293,13 +292,14 @@ export default function StudyCompanionPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask anything about your studies..."
-            className="flex-1 h-10 sm:h-11"
+            className="flex-1 h-10 sm:h-11 glass"
             disabled={isLoading}
             enterKeyHint="send"
           />
           <Button
             type="submit"
             disabled={isLoading || !input.trim()}
+            variant="gradient"
             className="h-10 sm:h-11 px-3 sm:px-4 shrink-0"
           >
             <Send className="w-4 h-4 sm:mr-1.5" />

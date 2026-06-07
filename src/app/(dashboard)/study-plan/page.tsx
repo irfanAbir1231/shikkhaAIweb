@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Select,
@@ -28,23 +28,23 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AIInsightCard } from '@/components/ui/ai-insight-card';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { SUBJECTS } from '@/lib/utils/constants';
 import {
   Calendar,
   Plus,
   Trash2,
   Clock,
-  BookOpen,
-  Target,
   CheckCircle2,
   Circle,
-  Brain,
   Sparkles,
   X,
   Loader2,
   AlertCircle,
   Play,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const generateSchema = z.object({
   goal: z.string().min(1, 'Goal is required'),
@@ -62,18 +62,13 @@ const GOALS = [
 ];
 
 const TASK_TYPE_COLORS: Record<string, string> = {
-  study: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  practice: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  break: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  study: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-400/20',
+  practice: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-400/20',
+  review: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-400/20',
+  break: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-400/20',
 };
 
-const TASK_TYPE_ICONS: Record<string, typeof Brain> = {
-  study: BookOpen,
-  practice: Brain,
-  review: Sparkles,
-  break: Clock,
-};
+
 
 function getMinDeadline(): string {
   const d = new Date();
@@ -130,7 +125,6 @@ export default function StudyPlanPage() {
   });
 
   const dailyHours = watch('daily_hours');
-  const deadline = watch('deadline');
 
   const handleAddSelection = () => {
     if (!currentSubject) {
@@ -207,7 +201,7 @@ export default function StudyPlanPage() {
       setCurrentChapter('');
       setCurrentTopic('');
       setDetailPlan(plan);
-    } catch (error) {
+    } catch {
       toast.error('Failed to generate study plan');
     } finally {
       setIsGenerating(false);
@@ -241,93 +235,109 @@ export default function StudyPlanPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Study Plan</h1>
-          <p className="text-muted-foreground">AI-generated study schedules with task tracking</p>
+      <Reveal>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gradient">Study Plan</h1>
+            <p className="text-muted-foreground">AI-generated study schedules with task tracking</p>
+          </div>
+          <Button onClick={() => setGenerateOpen(true)} variant="gradient">
+            <Plus className="w-4 h-4 mr-1" />
+            Generate Plan
+          </Button>
         </div>
-        <Button onClick={() => setGenerateOpen(true)}>
-          <Plus className="w-4 h-4 mr-1" />
-          Generate Plan
-        </Button>
-      </div>
+      </Reveal>
+
+      {/* AI Insight */}
+      {plans.length > 0 && (
+        <Reveal>
+          <AIInsightCard>
+            You have {plans.length} active study plan{plans.length !== 1 ? 's' : ''}. Consistent daily practice beats cramming — try to hit your daily target every day for maximum retention.
+          </AIInsightCard>
+        </Reveal>
+      )}
 
       {/* Plans Grid */}
       {plans.length === 0 ? (
-        <Card>
+        <Card variant="glass">
           <CardContent className="p-12 text-center">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-4 shadow-glow">
+              <Calendar className="w-6 h-6 text-white" />
+            </div>
             <p className="text-muted-foreground font-medium">No study plans yet</p>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
               Generate a personalized AI study schedule based on your subjects, topics, and goals.
               Track your progress day by day.
             </p>
-            <Button className="mt-4" onClick={() => setGenerateOpen(true)}>
+            <Button className="mt-4" variant="gradient" onClick={() => setGenerateOpen(true)}>
               <Sparkles className="w-4 h-4 mr-1" />
               Generate Your First Plan
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Stagger className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" gap={0.06}>
           {plans.map((plan) => (
-            <Card
-              key={plan.id}
-              className="hover:shadow-md transition-shadow cursor-pointer group"
-              onClick={() => setDetailPlan(plan)}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <Badge variant="outline" className="capitalize">
-                    {plan.subject}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(plan.id);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
-
-                <h3 className="font-semibold text-lg mb-1">{plan.title}</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {GOALS.find((g) => g.value === plan.goal)?.label || plan.goal}
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-medium">{plan.progress}%</span>
+            <StaggerItem key={plan.id}>
+              <Card
+                variant="glass"
+                interactive
+                className="cursor-pointer group"
+                onClick={() => setDetailPlan(plan)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <Badge variant="outline" className="capitalize glass">
+                      {plan.subject}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover-lift"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(plan.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
                   </div>
-                  <Progress value={plan.progress} className="h-2" />
 
-                  <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {new Date(plan.start_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}{' '}
-                      —{' '}
-                      {new Date(plan.end_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted">
-                      {daysUntil(plan.end_date)}
-                    </span>
+                  <h3 className="font-semibold text-lg mb-1">{plan.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {GOALS.find((g) => g.value === plan.goal)?.label || plan.goal}
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="font-medium text-gradient">{plan.progress}%</span>
+                    </div>
+                    <Progress value={plan.progress} className="h-2" />
+
+                    <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(plan.start_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}{' '}
+                        —{' '}
+                        {new Date(plan.end_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full glass">
+                        {daysUntil(plan.end_date)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       )}
 
       {/* Generate Dialog */}
@@ -335,7 +345,9 @@ export default function StudyPlanPage() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
               Generate Study Plan
             </DialogTitle>
           </DialogHeader>
@@ -349,7 +361,7 @@ export default function StudyPlanPage() {
                   <Button
                     key={subject}
                     type="button"
-                    variant={currentSubject === subject ? 'default' : 'outline'}
+                    variant={currentSubject === subject ? 'gradient' : 'outline'}
                     size="sm"
                     onClick={() => handleSelectSubject(subject)}
                   >
@@ -385,7 +397,7 @@ export default function StudyPlanPage() {
                   <SelectContent>
                     {chaptersLoading && (
                       <div className="px-3 py-2">
-                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full skeleton-shimmer" />
                       </div>
                     )}
                     {chaptersError && (
@@ -437,7 +449,7 @@ export default function StudyPlanPage() {
                   <SelectContent>
                     {topicsLoading && (
                       <div className="px-3 py-2">
-                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full skeleton-shimmer" />
                       </div>
                     )}
                     {topicsError && (
@@ -484,7 +496,7 @@ export default function StudyPlanPage() {
                     <Badge
                       key={sel.id}
                       variant="secondary"
-                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs glass"
                     >
                       {selectionLabel(sel)}
                       <button
@@ -508,7 +520,7 @@ export default function StudyPlanPage() {
                   <Button
                     key={goal.value}
                     type="button"
-                    variant={watch('goal') === goal.value ? 'default' : 'outline'}
+                    variant={watch('goal') === goal.value ? 'gradient' : 'outline'}
                     size="sm"
                     onClick={() => setValue('goal', goal.value)}
                   >
@@ -539,7 +551,7 @@ export default function StudyPlanPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label>Daily Study Hours</Label>
-                <span className="text-sm font-medium">{dailyHours} hrs</span>
+                <span className="text-sm font-medium text-gradient">{dailyHours} hrs</span>
               </div>
               <Slider
                 value={[dailyHours]}
@@ -552,8 +564,15 @@ export default function StudyPlanPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={isGenerating}>
-              {isGenerating ? 'Generating...' : 'Generate Study Plan'}
+            <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isGenerating}>
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                'Generate Study Plan'
+              )}
             </Button>
           </form>
         </DialogContent>
@@ -607,7 +626,7 @@ function StudyPlanDetailDialog({
               <Button
                 variant="ghost"
                 size="icon"
-                className="shrink-0"
+                className="shrink-0 hover-lift"
                 onClick={onClose}
               >
                 <X className="w-4 h-4" />
@@ -617,15 +636,15 @@ function StudyPlanDetailDialog({
 
           {/* Overview */}
           <div className="grid grid-cols-3 gap-3 mt-4">
-            <div className="bg-muted rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold">{plan.progress}%</p>
+            <div className="rounded-xl glass p-3 text-center">
+              <p className="text-2xl font-bold text-gradient">{plan.progress}%</p>
               <p className="text-xs text-muted-foreground">Complete</p>
             </div>
-            <div className="bg-muted rounded-lg p-3 text-center">
+            <div className="rounded-xl glass p-3 text-center">
               <p className="text-2xl font-bold">{completedTasks}/{totalTasks}</p>
               <p className="text-xs text-muted-foreground">Tasks Done</p>
             </div>
-            <div className="bg-muted rounded-lg p-3 text-center">
+            <div className="rounded-xl glass p-3 text-center">
               <p className="text-2xl font-bold">{plan.daily_hours}h</p>
               <p className="text-xs text-muted-foreground">Daily Target</p>
             </div>
@@ -646,16 +665,17 @@ function StudyPlanDetailDialog({
                     <button
                       key={s.day}
                       onClick={() => setActiveDay(s.day)}
-                      className={`flex flex-col items-center min-w-[60px] px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                      className={cn(
+                        'flex flex-col items-center min-w-[60px] px-2 py-1.5 rounded-lg text-xs transition-all',
                         activeDay === s.day
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-brand-gradient text-white shadow-glow'
                           : allDone
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                      }`}
+                          ? 'bg-green-500/10 text-green-600 border border-green-400/20'
+                          : 'glass text-muted-foreground hover:bg-muted/50'
+                      )}
                     >
                       <span className="font-medium">Day {s.day}</span>
-                      <span className="opacity-80">
+                      <span className={activeDay === s.day ? 'opacity-80' : 'opacity-60'}>
                         {new Date(s.date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -709,7 +729,7 @@ function StudyPlanDetailDialog({
           <Button
             variant="ghost"
             size="sm"
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
             onClick={() => {
               deletePlan(plan.id);
               toast.success('Study plan deleted');
@@ -719,7 +739,7 @@ function StudyPlanDetailDialog({
             <Trash2 className="w-4 h-4 mr-1" />
             Delete Plan
           </Button>
-          <Button size="sm" onClick={onClose}>
+          <Button size="sm" variant="gradient" onClick={onClose}>
             Close
           </Button>
         </div>
@@ -730,7 +750,6 @@ function StudyPlanDetailDialog({
 
 function TaskItem({
   task,
-  planId,
   onToggle,
 }: {
   task: StudyPlanTask;
@@ -738,7 +757,6 @@ function TaskItem({
   onToggle: () => void;
 }) {
   const router = useRouter();
-  const Icon = TASK_TYPE_ICONS[task.type] || BookOpen;
   const isBreak = task.type === 'break';
 
   const handleStartFocus = () => {
@@ -769,11 +787,13 @@ function TaskItem({
 
   return (
     <div
-      className={`group flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+      className={cn(
+        'group flex items-start gap-3 p-3 rounded-xl border transition-all hover-lift',
         task.completed && !isBreak
-          ? 'bg-green-50/50 border-green-200 dark:bg-green-950/10 dark:border-green-900/30'
-          : 'bg-card border-border hover:bg-muted/50'
-      } ${isBreak ? 'opacity-70' : ''}`}
+          ? 'glass border-green-500/20 bg-green-500/5'
+          : 'glass border-border/40 hover:bg-muted/20',
+        isBreak && 'opacity-60'
+      )}
     >
       {!isBreak && (
         <button
@@ -790,20 +810,21 @@ function TaskItem({
       {isBreak && <Clock className="w-5 h-5 mt-0.5 shrink-0 text-muted-foreground" />}
 
       <div
-        className={`flex-1 min-w-0 ${!isBreak ? 'cursor-pointer' : ''}`}
+        className={cn('flex-1 min-w-0', !isBreak && 'cursor-pointer')}
         onClick={handleStartFocus}
       >
         <div className="flex items-center gap-2 flex-wrap">
           <h4
-            className={`font-medium text-sm ${
-              task.completed && !isBreak ? 'line-through text-muted-foreground' : ''
-            }`}
+            className={cn(
+              'font-medium text-sm',
+              task.completed && !isBreak && 'line-through text-muted-foreground'
+            )}
           >
             {task.title}
           </h4>
           <Badge
-            variant="secondary"
-            className={`text-[10px] px-1.5 py-0 h-5 ${TASK_TYPE_COLORS[task.type] || ''}`}
+            variant="outline"
+            className={cn('text-[10px] px-1.5 py-0 h-5', TASK_TYPE_COLORS[task.type] || '')}
           >
             {task.type}
           </Badge>

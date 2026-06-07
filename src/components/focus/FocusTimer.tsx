@@ -63,7 +63,7 @@ export function FocusTimer({
             fill="none"
             stroke="currentColor"
             strokeWidth="6"
-            className="text-muted/30"
+            className="text-muted/20"
           />
           <circle
             cx="50"
@@ -75,6 +75,7 @@ export function FocusTimer({
             strokeLinecap="round"
             strokeDasharray={`${progressPercent * 2.83} 283`}
             className="text-emerald-500 transition-all duration-1000 ease-linear"
+            style={{ filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.4))' }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -90,7 +91,7 @@ export function FocusTimer({
       {/* Controls */}
       <div className="flex items-center gap-3">
         {isPaused ? (
-          <Button size="lg" onClick={onResume} className="gap-2">
+          <Button size="lg" variant="gradient" onClick={onResume} className="gap-2">
             <Play className="w-5 h-5" />
             Resume
           </Button>
@@ -104,7 +105,7 @@ export function FocusTimer({
           <Square className="w-5 h-5" />
           End Session
         </Button>
-        <Button size="icon" variant="ghost" onClick={onReset} className="gap-2">
+        <Button size="icon" variant="ghost" onClick={onReset} className="gap-2 hover-lift">
           <RotateCcw className="w-5 h-5" />
         </Button>
       </div>

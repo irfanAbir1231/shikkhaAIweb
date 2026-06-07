@@ -2,6 +2,7 @@
 
 import type { IntegrityScore } from '@/lib/types/focus-session';
 import { Shield, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface IntegrityScoreCardProps {
   score: IntegrityScore | null;
@@ -12,15 +13,15 @@ export function IntegrityScoreCard({ score }: IntegrityScoreCardProps) {
 
   const Icon = score.flagged ? ShieldAlert : score.scorePercent >= 90 ? ShieldCheck : Shield;
   const colorClass = score.flagged
-    ? 'text-red-500 bg-red-50 border-red-200'
+    ? 'text-red-500 border-red-500/20 bg-red-500/5'
     : score.scorePercent >= 90
-    ? 'text-emerald-500 bg-emerald-50 border-emerald-200'
+    ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5'
     : score.scorePercent >= 75
-    ? 'text-amber-500 bg-amber-50 border-amber-200'
-    : 'text-orange-500 bg-orange-50 border-orange-200';
+    ? 'text-amber-500 border-amber-500/20 bg-amber-500/5'
+    : 'text-orange-500 border-orange-500/20 bg-orange-500/5';
 
   return (
-    <div className={`rounded-xl border p-4 space-y-3 ${colorClass}`}>
+    <div className={cn('rounded-xl border p-4 space-y-3 glass', colorClass)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon className="w-5 h-5" />
@@ -43,7 +44,7 @@ export function IntegrityScoreCard({ score }: IntegrityScoreCardProps) {
       </div>
 
       {score.flagged && (
-        <p className="text-xs font-medium text-red-600 bg-red-100 rounded px-2 py-1">
+        <p className="text-xs font-medium text-red-600 bg-red-500/10 rounded-lg px-2 py-1 border border-red-400/20">
           This attempt has been flagged as unreliable due to frequent tab switches.
         </p>
       )}

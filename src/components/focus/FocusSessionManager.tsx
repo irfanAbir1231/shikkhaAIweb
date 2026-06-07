@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Reveal } from '@/components/motion/reveal';
 import { BookOpen, GraduationCap, Timer, BookMarked } from 'lucide-react';
 import type { StartFocusSessionInput } from '@/lib/types/focus-session';
 
@@ -112,76 +113,80 @@ export function FocusSessionManager({
     <div className="max-w-3xl mx-auto space-y-8">
       {/* Setup Card */}
       {!isRunning && !sessionCompleted && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Timer className="w-5 h-5 text-emerald-500" />
-              Start Focus Session
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {initialTopic && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                <BookMarked className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="truncate">{initialTopic}</span>
+        <Reveal>
+          <Card variant="glass">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                  <Timer className="w-4 h-4 text-white" />
+                </div>
+                Start Focus Session
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {initialTopic && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground glass rounded-xl px-3 py-2">
+                  <BookMarked className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="truncate">{initialTopic}</span>
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Session Mode</Label>
+                  <Select value={mode} onValueChange={(v) => setMode(v as StartFocusSessionInput['mode'])}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="study">
+                        <span className="flex items-center gap-2">
+                          <BookOpen className="w-4 h-4" /> Study
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="exam">
+                        <span className="flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4" /> Exam
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="pomodoro">
+                        <span className="flex items-center gap-2">
+                          <Timer className="w-4 h-4" /> Pomodoro
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Duration (minutes)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={180}
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                  />
+                </div>
               </div>
-            )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Session Mode</Label>
-                <Select value={mode} onValueChange={(v) => setMode(v as StartFocusSessionInput['mode'])}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="study">
-                      <span className="flex items-center gap-2">
-                        <BookOpen className="w-4 h-4" /> Study
-                      </span>
-                    </SelectItem>
-                    <SelectItem value="exam">
-                      <span className="flex items-center gap-2">
-                        <GraduationCap className="w-4 h-4" /> Exam
-                      </span>
-                    </SelectItem>
-                    <SelectItem value="pomodoro">
-                      <span className="flex items-center gap-2">
-                        <Timer className="w-4 h-4" /> Pomodoro
-                      </span>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Duration (minutes)</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={180}
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                />
-              </div>
-            </div>
-            <Button size="lg" className="w-full gap-2" onClick={handleStart}>
-              <Timer className="w-5 h-5" />
-              Start Session
-            </Button>
-          </CardContent>
-        </Card>
+              <Button size="lg" variant="gradient" className="w-full gap-2 shadow-glow" onClick={handleStart}>
+                <Timer className="w-5 h-5" />
+                Start Session
+              </Button>
+            </CardContent>
+          </Card>
+        </Reveal>
       )}
 
       {/* Active Session */}
       {isRunning && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="flex flex-col items-center justify-center p-6">
+          <Card variant="glass" className="flex flex-col items-center justify-center p-6">
             <FocusGarden
               plant={currentPlant}
               isRunning={isRunning}
               sessionProgress={sessionProgress}
             />
           </Card>
-          <Card className="flex flex-col items-center justify-center p-6">
+          <Card variant="glass" className="flex flex-col items-center justify-center p-6">
             {session?.notes && (
               <p className="text-sm text-muted-foreground mb-4 text-center max-w-[200px] truncate">
                 <BookMarked className="w-3.5 h-3.5 inline mr-1 text-emerald-500" />
@@ -204,38 +209,40 @@ export function FocusSessionManager({
 
       {/* Session Results */}
       {sessionCompleted && session && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {session.status === 'completed' ? 'Session Complete!' : 'Session Ended'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <IntegrityScoreCard score={integrityScore} />
+        <Reveal>
+          <Card variant="glass">
+            <CardHeader>
+              <CardTitle>
+                {session.status === 'completed' ? 'Session Complete!' : 'Session Ended'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <IntegrityScoreCard score={integrityScore} />
 
-            <div className="flex flex-col items-center gap-4 py-4">
-              <FocusGarden
-                plant={currentPlant}
-                isRunning={false}
-                sessionProgress={100}
-              />
-              {session.status === 'completed' && currentPlant && !currentPlant.withered && (
-                <p className="text-emerald-600 font-medium">
-                  Your {currentPlant.name} grew into a {currentPlant.type}!
-                </p>
-              )}
-              {session.status !== 'completed' && currentPlant && currentPlant.withered && (
-                <p className="text-red-500 font-medium">
-                  Your {currentPlant.name} withered because the session ended early.
-                </p>
-              )}
-            </div>
+              <div className="flex flex-col items-center gap-4 py-4">
+                <FocusGarden
+                  plant={currentPlant}
+                  isRunning={false}
+                  sessionProgress={100}
+                />
+                {session.status === 'completed' && currentPlant && !currentPlant.withered && (
+                  <p className="text-emerald-600 font-medium">
+                    Your {currentPlant.name} grew into a {currentPlant.type}!
+                  </p>
+                )}
+                {session.status !== 'completed' && currentPlant && currentPlant.withered && (
+                  <p className="text-red-500 font-medium">
+                    Your {currentPlant.name} withered because the session ended early.
+                  </p>
+                )}
+              </div>
 
-            <Button className="w-full" onClick={handleReset}>
-              Start New Session
-            </Button>
-          </CardContent>
-        </Card>
+              <Button variant="gradient" className="w-full" onClick={handleReset}>
+                Start New Session
+              </Button>
+            </CardContent>
+          </Card>
+        </Reveal>
       )}
 
       {/* Warning Modal */}

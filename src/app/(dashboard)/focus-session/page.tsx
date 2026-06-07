@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { FocusSessionManager } from '@/components/focus/FocusSessionManager';
 import { GardenGallery } from '@/components/focus/GardenGallery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Reveal } from '@/components/motion/reveal';
 import { Timer, Flower2 } from 'lucide-react';
 
 function FocusSessionContent() {
@@ -16,12 +17,12 @@ function FocusSessionContent() {
 
   return (
     <Tabs defaultValue="session" className="w-full">
-      <TabsList className="grid w-full max-w-md grid-cols-2">
-        <TabsTrigger value="session" className="gap-2">
+      <TabsList className="grid w-full max-w-md grid-cols-2 glass">
+        <TabsTrigger value="session" className="gap-2 data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
           <Timer className="w-4 h-4" />
           Focus Session
         </TabsTrigger>
-        <TabsTrigger value="garden" className="gap-2">
+        <TabsTrigger value="garden" className="gap-2 data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
           <Flower2 className="w-4 h-4" />
           My Garden
         </TabsTrigger>
@@ -45,12 +46,14 @@ function FocusSessionContent() {
 export default function FocusSessionPage() {
   return (
     <div className="container max-w-5xl py-8 space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Focus Session</h1>
-        <p className="text-muted-foreground">
-          Stay in the zone, grow your garden, and track your focus integrity.
-        </p>
-      </div>
+      <Reveal>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-gradient">Focus Session</h1>
+          <p className="text-muted-foreground">
+            Stay in the zone, grow your garden, and track your focus integrity.
+          </p>
+        </div>
+      </Reveal>
 
       <Suspense fallback={null}>
         <FocusSessionContent />
