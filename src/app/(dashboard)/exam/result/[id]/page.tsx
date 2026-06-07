@@ -169,6 +169,7 @@ function ReviewItem({
    ======================================================================== */
 export default function ExamResultPage() {
   const params = useParams();
+  const examId = parseInt(params?.id as string, 10);
   const { user } = useAuthStore();
   const { exam, lastResult } = useExamStore();
   const [result, setResult] = useState<ExamSubmitResponse | null>(() =>
@@ -180,8 +181,6 @@ export default function ExamResultPage() {
   const [savedExam, setSavedExam] = useState(false);
   const saveNote = useSaveNote();
   const reduce = useReducedMotion();
-
-  const examId = parseInt(params?.id as string, 10);
 
   useEffect(() => {
     const alreadyLoaded = lastResult && lastResult.exam_id === examId;
