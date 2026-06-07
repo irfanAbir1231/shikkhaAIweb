@@ -28,6 +28,7 @@ import {
   BookOpen,
   Brain,
   FileQuestion,
+  Library,
   ArrowRight,
   Lightbulb,
   Flame,
@@ -59,6 +60,12 @@ const quickActions = [
     label: 'Analytics',
     icon: BookOpen,
     color: 'bg-purple-500',
+  },
+  {
+    href: '/library',
+    label: 'Library',
+    icon: Library,
+    color: 'bg-amber-500',
   },
 ];
 
