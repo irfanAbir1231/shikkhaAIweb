@@ -21,6 +21,8 @@ import {
   BookOpen,
   Trash2,
   Sparkles,
+  AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -69,54 +71,116 @@ export default function StudyCompanionPage() {
 
   const idRef = useRef(0);
 
-  const handleSend = useCallback(async (messageText: string = input) => {
-    if (!messageText.trim() || !user) return;
+  const sendWithRetry = useCallback(
+    async (messageText: string): Promise<void> => {
+      if (!user) return;
 
-    const now = new Date();
-    const userMessage: ChatMessage = {
-      id: `u_${++idRef.current}`,
-      role: 'user',
-      content: messageText,
-      timestamp: now.toISOString(),
-    };
+      const maxRetries = 2;
+      let attempt = 0;
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
+      while (attempt <= maxRetries) {
+        const res = await fetch('/api/proxy/study-companion/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            student_id: user.id,
+            message: messageText,
+            mode,
+            subject: detectSubject(messageText),
+            class_level: user.grade_level,
+          }),
+        });
 
-    try {
-      const res = await fetch('/api/proxy/study-companion/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          student_id: user.id,
-          message: messageText,
-          mode,
-          subject: detectSubject(messageText),
-          class_level: user.grade_level,
-        }),
-      });
+        const data = await res.json();
 
-      const data = await res.json();
+        if (data.success) {
+          const responseText: string = data.data?.response || '';
+          // Detect if the backend accidentally returned an error as a success response
+          const looksLikeError =
+            responseText.includes('RAG HTTP ask failed') ||
+            responseText.includes('429 Too Many Requests') ||
+            responseText.includes('503 Service Unavailable') ||
+            responseText.includes('RAG server') ||
+            responseText.includes('not reachable');
 
-      if (data.success) {
-        const assistantMessage: ChatMessage = {
-          id: `a_${++idRef.current}`,
-          role: 'assistant',
-          content: data.data.response,
-          timestamp: new Date().toISOString(),
-          sources: data.data.sources,
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-      } else {
-        toast.error(data.error?.message || 'Failed to get response');
+          if (!looksLikeError) {
+            const assistantMessage: ChatMessage = {
+              id: `a_${++idRef.current}`,
+              role: 'assistant',
+              content: responseText,
+              timestamp: new Date().toISOString(),
+              sources: data.data?.sources,
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            return;
+          }
+        }
+
+        // Retry on server errors or error-looking responses
+        if (attempt < maxRetries && (res.status >= 500 || (data.success && data.data?.response))) {
+          const delay = 1000 * (attempt + 1);
+          await new Promise((r) => setTimeout(r, delay));
+          attempt++;
+          continue;
+        }
+
+        break;
       }
-    } catch {
-      toast.error('Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [input, user, mode]);
+
+      const errorMessage: ChatMessage = {
+        id: `e_${++idRef.current}`,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString(),
+        isError: true,
+        retryText: messageText,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    },
+    [user, mode]
+  );
+
+  const handleSend = useCallback(
+    async (messageText: string = input) => {
+      if (!messageText.trim() || !user) return;
+
+      const userMessage: ChatMessage = {
+        id: `u_${++idRef.current}`,
+        role: 'user',
+        content: messageText,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInput('');
+      setIsLoading(true);
+
+      try {
+        await sendWithRetry(messageText);
+      } catch {
+        const errorMessage: ChatMessage = {
+          id: `e_${++idRef.current}`,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date().toISOString(),
+          isError: true,
+          retryText: messageText,
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [input, user, sendWithRetry]
+  );
+
+  const handleRetry = useCallback(
+    (messageText: string) => {
+      setMessages((prev) => prev.filter((m) => m.retryText !== messageText));
+      handleSend(messageText);
+    },
+    [handleSend]
+  );
 
   const clearChat = () => {
     setMessages([]);
@@ -228,10 +292,38 @@ export default function StudyCompanionPage() {
                     'max-w-[85%] sm:max-w-[75%] p-2.5 sm:p-3',
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
-                      : 'glass'
+                      : message.isError
+                        ? 'border-destructive/30 bg-destructive/5'
+                        : 'glass'
                   )}
                 >
-                  {message.isLoading ? (
+                  {message.isError ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-destructive">
+                            Unable to get a response
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            The AI tutor is temporarily unavailable. Please try again in a moment.
+                          </p>
+                        </div>
+                      </div>
+                      {message.retryText && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="self-start h-7 text-xs gap-1"
+                          onClick={() => handleRetry(message.retryText!)}
+                          disabled={isLoading}
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Retry
+                        </Button>
+                      )}
+                    </div>
+                  ) : message.isLoading ? (
                     <AILoader compact label="Thinking..." />
                   ) : (
                     <div

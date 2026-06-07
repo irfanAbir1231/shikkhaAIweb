@@ -19,6 +19,8 @@ export interface ChatMessage {
   timestamp: string;
   sources?: string[];
   isLoading?: boolean;
+  isError?: boolean;
+  retryText?: string;
 }
 
 export interface ChatSession {
