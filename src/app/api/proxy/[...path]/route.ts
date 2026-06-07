@@ -22,11 +22,13 @@ export async function PATCH(request: NextRequest) {
 }
 
 async function handleProxy(request: NextRequest, method: string) {
+  let upstreamUrl: string | undefined;
+
   try {
     const token = request.cookies.get('token')?.value;
     const pathname = request.nextUrl.pathname.replace('/api/proxy', '');
     const searchParams = request.nextUrl.searchParams.toString();
-    const url = `${API_BASE_URL}${pathname}${searchParams ? '?' + searchParams : ''}`;
+    upstreamUrl = `${API_BASE_URL}${pathname}${searchParams ? '?' + searchParams : ''}`;
 
     const headers: Record<string, string> = {};
     if (token) {
@@ -53,23 +55,47 @@ async function handleProxy(request: NextRequest, method: string) {
       }
     }
 
-    const res = await fetch(url, {
+    const res = await fetch(upstreamUrl, {
       method,
       headers,
       body,
     });
 
-    const data = await res.json().catch(() => null);
-
-    if (!data) {
-      return new NextResponse(null, { status: res.status });
+    // Always return JSON to the client so fetch().json() never explodes
+    const text = await res.text();
+    let data: unknown;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = null;
     }
 
-    return NextResponse.json(data, { status: res.status });
-  } catch (error) {
+    if (data && typeof data === 'object') {
+      return NextResponse.json(data, { status: res.status });
+    }
+
+    // Upstream returned a non-JSON body (HTML error page, empty body, etc.)
     return NextResponse.json(
-      { success: false, error: 'Proxy error' },
-      { status: 500 }
+      {
+        success: false,
+        error: {
+          code: 'UPSTREAM_ERROR',
+          message: `Upstream returned ${res.status} ${res.statusText}${text ? ' (non-JSON response)' : ' (empty response)'}`,
+        },
+      },
+      { status: res.status >= 200 && res.status < 300 ? 502 : res.status }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Proxy error';
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'PROXY_ERROR',
+          message: `Could not reach upstream API${upstreamUrl ? ` at ${upstreamUrl}` : ''}: ${message}`,
+        },
+      },
+      { status: 502 }
     );
   }
 }

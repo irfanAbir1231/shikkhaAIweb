@@ -3,11 +3,53 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { StudySpace, SpaceDocument, CreateSpacePayload, SpaceDetail } from '@/lib/types/spaces';
 
+interface ApiEnvelope {
+  success: boolean;
+  data?: unknown;
+  error?: { code?: string; message?: string };
+  detail?: unknown; // FastAPI default error shape
+}
+
+async function parseApiResponse(res: Response): Promise<ApiEnvelope> {
+  let text: string;
+  try {
+    text = await res.text();
+  } catch {
+    text = '';
+  }
+
+  let json: Partial<ApiEnvelope> | null = null;
+  try {
+    json = text ? (JSON.parse(text) as Partial<ApiEnvelope>) : null;
+  } catch {
+    json = null;
+  }
+
+  if (json && typeof json === 'object' && 'success' in json) {
+    return json as ApiEnvelope;
+  }
+
+  // Upstream returned a non-JSON or unexpected envelope
+  const upstreamMessage = json && typeof json === 'object' && 'detail' in json
+    ? String((json as { detail?: unknown }).detail)
+    : text || `HTTP ${res.status} ${res.statusText}`;
+
+  return {
+    success: false,
+    error: {
+      code: 'UPSTREAM_ERROR',
+      message: upstreamMessage,
+    },
+  };
+}
+
 async function fetchSpaces(): Promise<StudySpace[]> {
   const res = await fetch('/api/proxy/spaces');
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error?.message || 'Failed to fetch spaces');
-  return data.data as StudySpace[];
+  const json = await parseApiResponse(res);
+  if (!json.success) {
+    throw new Error(json.error?.message || 'Failed to fetch spaces');
+  }
+  return (json.data as StudySpace[]) ?? [];
 }
 
 async function createSpace(payload: CreateSpacePayload): Promise<StudySpace> {
@@ -16,16 +58,20 @@ async function createSpace(payload: CreateSpacePayload): Promise<StudySpace> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error?.message || 'Failed to create space');
-  return data.data as StudySpace;
+  const json = await parseApiResponse(res);
+  if (!json.success) {
+    throw new Error(json.error?.message || 'Failed to create space');
+  }
+  return json.data as StudySpace;
 }
 
 async function fetchSpaceDetail(spaceId: string): Promise<SpaceDetail> {
   const res = await fetch(`/api/proxy/spaces/${spaceId}`);
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error?.message || 'Failed to fetch space detail');
-  return data.data as SpaceDetail;
+  const json = await parseApiResponse(res);
+  if (!json.success) {
+    throw new Error(json.error?.message || 'Failed to fetch space detail');
+  }
+  return json.data as SpaceDetail;
 }
 
 async function uploadDocument(
@@ -44,7 +90,7 @@ async function uploadDocument(
 
     xhr.addEventListener('load', () => {
       try {
-        const response = JSON.parse(xhr.responseText);
+        const response = JSON.parse(xhr.responseText || '{}') as ApiEnvelope;
         if (xhr.status >= 200 && xhr.status < 300 && response.success) {
           resolve(response.data as SpaceDocument);
         } else if (xhr.status === 413) {
@@ -52,10 +98,10 @@ async function uploadDocument(
         } else if (xhr.status === 415) {
           reject(new Error('Only PDF files are supported.'));
         } else {
-          reject(new Error(response.error?.message || 'Upload failed'));
+          reject(new Error(response.error?.message || response.detail as string || `Upload failed (${xhr.status})`));
         }
       } catch {
-        reject(new Error('Invalid server response'));
+        reject(new Error(xhr.responseText || 'Invalid server response'));
       }
     });
 
