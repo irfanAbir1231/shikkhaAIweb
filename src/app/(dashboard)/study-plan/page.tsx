@@ -743,6 +743,22 @@ function TaskItem({
 
   const handleStartFocus = () => {
     if (isBreak) return;
+
+    // Detect mock test tasks and redirect to exam config instead of focus session
+    const isMockTest = task.type === 'practice' && task.title.toLowerCase().includes('mock test');
+
+    if (isMockTest) {
+      const numQuestions = Math.min(50, Math.max(5, Math.floor(task.duration_minutes / 2)));
+      const params = new URLSearchParams({
+        subject: task.subject.toLowerCase(),
+        topic: task.subject,
+        time_limit: String(task.duration_minutes),
+        num_questions: String(numQuestions),
+      });
+      router.push(`/exam/config?${params.toString()}`);
+      return;
+    }
+
     const params = new URLSearchParams({
       topic: task.title,
       duration: String(task.duration_minutes),

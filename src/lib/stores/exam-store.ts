@@ -12,7 +12,7 @@ interface ExamState {
   isTimerPaused: boolean;
   lastResult: ExamSubmitResponse | null;
 
-  setExam: (exam: ExamResponse) => void;
+  setExam: (exam: ExamResponse, customTimeLimitSeconds?: number) => void;
   setAnswer: (questionId: string, answer: string) => void;
   nextQuestion: () => void;
   prevQuestion: () => void;
@@ -37,12 +37,12 @@ export const useExamStore = create<ExamState>()(
       isTimerPaused: false,
       lastResult: null,
 
-      setExam: (exam) =>
+      setExam: (exam, customTimeLimitSeconds?) =>
         set({
           exam,
           answers: {},
           currentQuestionIndex: 0,
-          timeRemaining: exam.questions.length * 2 * 60, // 2 min per question default
+          timeRemaining: customTimeLimitSeconds ?? exam.questions.length * 2 * 60, // 2 min per question default
           isSubmitted: false,
           tabSwitchCount: 0,
           isTimerPaused: false,

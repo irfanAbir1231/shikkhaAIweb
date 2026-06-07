@@ -189,6 +189,8 @@ function ExamConfigForm() {
   const urlSubject = searchParams.get('subject') || '';
   const urlTopic = searchParams.get('topic') || '';
   const urlChapter = searchParams.get('chapter') || '';
+  const urlTimeLimit = searchParams.get('time_limit');
+  const urlNumQuestions = searchParams.get('num_questions');
 
   const {
     register,
@@ -205,8 +207,8 @@ function ExamConfigForm() {
       class_level: user?.grade_level || '8',
       chapter: '',
       difficulty: 'medium',
-      num_questions: 10,
-      time_limit: 30,
+      num_questions: urlNumQuestions ? Math.min(50, Math.max(5, parseInt(urlNumQuestions))) : 10,
+      time_limit: urlTimeLimit ? Math.min(180, Math.max(10, parseInt(urlTimeLimit))) : 30,
     },
   });
 
@@ -267,7 +269,7 @@ function ExamConfigForm() {
         return;
       }
 
-      setExam(result.data);
+      setExam(result.data, (data.time_limit || 30) * 60);
       toast.success('Exam generated!');
       router.push(`/exam/session/${result.data.exam_id}`);
     } catch (error) {
