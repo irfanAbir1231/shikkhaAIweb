@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useId, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useExamStore } from '@/lib/stores/exam-store';
@@ -12,20 +12,93 @@ import { Card } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { AILoader } from '@/components/ui/ai-loader';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { ExamSessionProtector } from '@/components/exam/exam-session-protector';
 import { formatDuration } from '@/lib/utils/formatters';
 import { useQueryClient } from '@tanstack/react-query';
+import { AIBackground } from '@/components/background/ai-background';
+import { cn } from '@/lib/utils';
 import {
   ChevronLeft,
   ChevronRight,
-  Flag,
-  AlertTriangle,
   Send,
+  Shield,
+  ShieldAlert,
+  Check,
+  AlertTriangle,
+  BookOpen,
 } from 'lucide-react';
 
+/* ------------------------------------------------------------------ */
+/*  Timer ring — animates on value change (unlike whileInView version) */
+/* ------------------------------------------------------------------ */
+function TimerRing({
+  value,
+  size = 44,
+  strokeWidth = 4,
+  isLowTime,
+}: {
+  value: number;
+  size?: number;
+  strokeWidth?: number;
+  isLowTime?: boolean;
+}) {
+  const reduce = useReducedMotion();
+  const clamped = Math.max(0, Math.min(100, value));
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dash = (clamped / 100) * circumference;
+  const gradId = useId();
+
+  return (
+    <svg width={size} height={size} className="-rotate-90 shrink-0">
+      <defs>
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="var(--brand-from)" />
+          <stop offset="50%" stopColor="var(--brand-via)" />
+          <stop offset="100%" stopColor="var(--brand-to)" />
+        </linearGradient>
+      </defs>
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        strokeWidth={strokeWidth}
+        className="stroke-muted"
+      />
+      <motion.circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke={isLowTime ? 'var(--destructive)' : `url(#${gradId})`}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        animate={{ strokeDashoffset: circumference - dash }}
+        transition={{ duration: reduce ? 0 : 0.6, ease: [0.16, 1, 0.3, 1] }}
+      />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                              */
+/* ------------------------------------------------------------------ */
 export default function ExamSessionPage({ params }: { params: { id: string } }) {
+  void params.id;
   const router = useRouter();
   const queryClient = useQueryClient();
+  const reduce = useReducedMotion();
   const { user } = useAuthStore();
   const {
     exam,
@@ -44,32 +117,14 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
     setLastResult,
   } = useExamStore();
 
-  // Redirect if no exam loaded
-  useEffect(() => {
-    if (!exam) {
-      router.push('/exam/config');
-    }
-  }, [exam, router]);
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [awardTreeOnSubmit, setAwardTreeOnSubmit] = useState(false);
 
-  // Timer — pauses when a tab-switch warning is active
-  useEffect(() => {
-    if (!exam || isSubmitted) return;
-    const interval = setInterval(() => {
-      if (!isTimerPaused) {
-        decrementTimer();
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [exam, isSubmitted, isTimerPaused, decrementTimer]);
+  /* --------------------------- Handlers --------------------------- */
 
-  // Auto-submit when time runs out
-  useEffect(() => {
-    if (timeRemaining === 0 && !isSubmitted) {
-      handleSubmit();
-    }
-  }, [timeRemaining, isSubmitted]);
-
-  const doSubmit = async (awardTree: boolean) => {
+  /* Core submission — no React setState, safe to call from effects */
+  const runSubmission = async (awardTree: boolean) => {
     if (!exam || !user || isSubmitted) return;
     submitExam();
 
@@ -97,16 +152,13 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
         return;
       }
 
-      // Store the full result so the result page can display it
       setLastResult(result.data);
 
-      // Award exam tree if student completed the full exam
       if (awardTree) {
         useFocusGardenStore.getState().awardExamTree(exam.topic);
         toast.success('You earned a Scholar Tree for completing the exam!');
       }
 
-      // Invalidate related queries so dashboard/analytics/notes refresh
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
       queryClient.invalidateQueries({ queryKey: ['notes'] });
@@ -115,200 +167,456 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
       toast.success(`Exam submitted! Score: ${result.data.score_percentage.toFixed(1)}%`);
       router.push(`/exam/result/${exam.exam_id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to submit exam');
     }
   };
 
-  const handleSubmit = () => doSubmit(false);
-  const handleCompleteExam = () => doSubmit(true);
+  const runSubmissionRef = useRef(runSubmission);
+  useEffect(() => {
+    runSubmissionRef.current = runSubmission;
+  });
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    await runSubmission(false);
+    setIsSubmitting(false);
+  };
+
+  const handleCompleteExam = async () => {
+    setIsSubmitting(true);
+    await runSubmission(true);
+    setIsSubmitting(false);
+  };
+
+  /* --------------------------- Effects ---------------------------- */
+
+  useEffect(() => {
+    if (!exam) {
+      router.push('/exam/config');
+    }
+  }, [exam, router]);
+
+  useEffect(() => {
+    if (!exam || isSubmitted) return;
+    const interval = setInterval(() => {
+      if (!isTimerPaused) {
+        decrementTimer();
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [exam, isSubmitted, isTimerPaused, decrementTimer]);
+
+  useEffect(() => {
+    if (timeRemaining === 0 && !isSubmitted) {
+      runSubmissionRef.current(false);
+    }
+  }, [timeRemaining, isSubmitted]);
+
+  /* --------------------------- Render ----------------------------- */
 
   if (!exam) return null;
 
   const question = exam.questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === exam.questions.length - 1;
   const answeredCount = Object.keys(answers).length;
+  const progressPercent = Math.round((answeredCount / exam.questions.length) * 100);
+  const totalTime = exam.questions.length * 2 * 60;
+  const timerPercent = Math.max(0, Math.min(100, (timeRemaining / totalTime) * 100));
+  const isLowTime = timeRemaining < 60;
 
   return (
     <ExamSessionProtector onAutoSubmit={handleSubmit} enabled={!isSubmitted}>
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header */}
-      <header className="h-14 border-b flex items-center justify-between px-4 lg:px-6">
-        <div className="flex items-center gap-4">
-          <span className="font-semibold">
-            {exam.subject} — {exam.topic}
-          </span>
+      <div className="fixed inset-0 z-50 flex flex-col">
+        {/* Dimmed ambient background */}
+        <div className="absolute inset-0 -z-10 opacity-25">
+          <AIBackground />
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className={`text-lg font-mono font-bold ${timeRemaining < 60 ? 'text-red-500 animate-pulse' : ''}`}>
-            {formatDuration(timeRemaining)}
+        {/* ---------- Header ---------- */}
+        <header className="relative h-16 border-b bg-background/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 gap-3 shrink-0">
+          {/* Left — Title */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <BookOpen className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-sm font-semibold truncate">{exam.subject}</h1>
+              <p className="text-xs text-muted-foreground truncate hidden sm:block">{exam.topic}</p>
+            </div>
           </div>
-          <Button variant="destructive" size="sm" onClick={handleSubmit}>
-            <Send className="w-4 h-4 mr-1" />
-            Submit
-          </Button>
-        </div>
-      </header>
 
-      {/* Progress */}
-      <div className="h-1 bg-muted">
-        <div
-          className="h-full bg-primary transition-all"
-          style={{ width: `${((currentQuestionIndex + 1) / exam.questions.length) * 100}%` }}
-        />
-      </div>
+          {/* Center — Progress */}
+          <div className="flex-1 max-w-sm mx-4 hidden md:block">
+            <div className="flex items-center justify-between text-[11px] mb-1">
+              <span className="text-muted-foreground">
+                {answeredCount} of {exam.questions.length} answered
+              </span>
+              <span className="font-medium tabular-nums">{progressPercent}%</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-brand-gradient"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: reduce ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </div>
+          </div>
 
-      {/* Tab switch warning */}
-      {tabSwitchCount > 0 && (
-        <div className="bg-yellow-50 dark:bg-yellow-950/20 border-b border-yellow-200 px-4 py-2 flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
-          <AlertTriangle className="w-4 h-4" />
-          <span className="text-sm">
-            Tab switches: {tabSwitchCount}/3 {tabSwitchCount >= 2 && '(Auto-submit on next)'}
-          </span>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Question Area */}
-        <div className="flex-1 overflow-auto p-4 lg:p-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentQuestionIndex}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-3xl mx-auto"
-            >
-              <div className="mb-6">
-                <span className="text-sm text-muted-foreground">
-                  Question {currentQuestionIndex + 1} of {exam.questions.length}
-                </span>
-                <span className="ml-2 text-xs px-2 py-1 bg-muted rounded-full uppercase">
-                  {question.type}
-                </span>
-                <span className="ml-2 text-xs px-2 py-1 bg-muted rounded-full">
-                  {question.marks} mark{question.marks > 1 ? 's' : ''}
-                </span>
+          {/* Right — Timer + Integrity + Submit */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Desktop timer ring */}
+            <div className="hidden sm:flex items-center gap-2">
+              <TimerRing value={timerPercent} isLowTime={isLowTime} />
+              <div className={cn('text-[11px] font-mono font-bold tabular-nums leading-none', isLowTime && 'text-red-500')}>
+                {formatDuration(timeRemaining)}
               </div>
+            </div>
 
-              <h2 className="text-xl font-medium mb-6">{question.prompt}</h2>
+            {/* Mobile timer text */}
+            <div className={cn('sm:hidden text-sm font-mono font-bold tabular-nums', isLowTime && 'text-red-500 animate-pulse')}>
+              {formatDuration(timeRemaining)}
+            </div>
 
-              {question.type === 'mcq' && question.options && (
-                <RadioGroup
-                  value={answers[question.id] || ''}
-                  onValueChange={(value) => setAnswer(question.id, value)}
-                  className="space-y-3"
-                >
-                  {question.options.map((option, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => setAnswer(question.id, option)}
-                    >
-                      <RadioGroupItem value={option} id={`option-${index}`} />
-                      <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
-                        <span className="font-medium mr-2">
-                          {String.fromCharCode(65 + index)}.
-                        </span>
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+            {/* Integrity indicator */}
+            <div className="hidden sm:flex">
+              {tabSwitchCount === 0 ? (
+                <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400" title="Exam secure">
+                  <Shield className="w-4 h-4" />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-xs text-amber-500 animate-pulse" title={`${tabSwitchCount}/3 tab switches`}>
+                  <ShieldAlert className="w-4 h-4" />
+                  <span className="tabular-nums">{tabSwitchCount}/3</span>
+                </div>
               )}
+            </div>
 
-              {question.type === 'short_answer' && (
-                <Textarea
-                  value={answers[question.id] || ''}
-                  onChange={(e) => setAnswer(question.id, e.target.value)}
-                  placeholder="Type your answer here..."
-                  className="min-h-[200px]"
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Navigation */}
-          <div className="max-w-3xl mx-auto mt-8 flex justify-between">
             <Button
-              variant="outline"
-              onClick={prevQuestion}
-              disabled={currentQuestionIndex === 0}
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                setAwardTreeOnSubmit(false);
+                setShowSubmitDialog(true);
+              }}
+              disabled={isSubmitting}
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Previous
+              <Send className="w-3.5 h-3.5 mr-1.5" />
+              <span className="hidden sm:inline">Submit</span>
             </Button>
-
-            {isLastQuestion ? (
-              <Button onClick={handleCompleteExam} variant="default">
-                Submit Exam
-                <Send className="w-4 h-4 ml-1" />
-              </Button>
-            ) : (
-              <Button onClick={nextQuestion}>
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            )}
           </div>
+        </header>
+
+        {/* ---------- Tab-switch warning ---------- */}
+        {tabSwitchCount > 0 && (
+          <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 text-xs shrink-0">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            <span>
+              Tab switches: {tabSwitchCount}/3 {tabSwitchCount >= 2 && '— auto-submit on next offense'}
+            </span>
+          </div>
+        )}
+
+        {/* ---------- Mobile progress strip ---------- */}
+        <div className="md:hidden h-1 bg-muted shrink-0">
+          <motion.div
+            className="h-full bg-brand-gradient"
+            animate={{ width: `${((currentQuestionIndex + 1) / exam.questions.length) * 100}%` }}
+            transition={{ duration: reduce ? 0 : 0.3 }}
+          />
         </div>
 
-        {/* Question Grid Sidebar */}
-        <aside className="hidden lg:block w-64 border-l bg-muted/30 p-4 overflow-auto">
-          <h3 className="font-medium mb-3">Questions</h3>
-          <div className="grid grid-cols-5 gap-2">
+        {/* ---------- Mobile question navigator ---------- */}
+        <div className="lg:hidden border-b bg-background/60 backdrop-blur-sm shrink-0">
+          <div className="flex gap-1.5 overflow-x-auto px-3 py-2 scrollbar-hide">
             {exam.questions.map((q, index) => {
               const isAnswered = !!answers[q.id];
               const isCurrent = index === currentQuestionIndex;
-
               return (
                 <button
                   key={q.id}
                   onClick={() => goToQuestion(index)}
-                  className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                  className={cn(
+                    'shrink-0 h-8 w-8 rounded-lg text-xs font-medium transition-all flex items-center justify-center',
                     isCurrent
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-primary text-primary-foreground shadow-glow ring-2 ring-primary/30'
                       : isAnswered
-                      ? 'bg-green-500 text-white'
-                      : 'bg-background border hover:bg-muted'
-                  }`}
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                        : 'bg-muted/50 text-muted-foreground border border-border/50'
+                  )}
                 >
-                  {index + 1}
+                  {isAnswered ? <Check className="w-3 h-3" /> : index + 1}
                 </button>
               );
             })}
           </div>
+        </div>
 
-          <div className="mt-4 space-y-2 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-green-500" />
-              <span>Answered</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-primary" />
-              <span>Current</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded border bg-background" />
-              <span>Not answered</span>
+        {/* ---------- Main content ---------- */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Question area */}
+          <div className="flex-1 overflow-auto p-4 lg:p-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentQuestionIndex}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }}
+                transition={{ duration: reduce ? 0.1 : 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="max-w-3xl mx-auto"
+              >
+                <Card variant="glass" className="p-6 lg:p-10 border-0 shadow-soft">
+                  {/* Meta badges */}
+                  <div className="flex flex-wrap items-center gap-2 mb-6">
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary">
+                      Question {currentQuestionIndex + 1} of {exam.questions.length}
+                    </span>
+                    <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-muted uppercase tracking-wider text-muted-foreground">
+                      {question.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}
+                    </span>
+                    <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+                      {question.marks} mark{question.marks > 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  {/* Prompt */}
+                  <h2 className="text-xl lg:text-2xl font-medium leading-relaxed mb-8 text-foreground">
+                    {question.prompt}
+                  </h2>
+
+                  {/* MCQ options */}
+                  {question.type === 'mcq' && question.options && (
+                    <RadioGroup
+                      value={answers[question.id] || ''}
+                      onValueChange={(value) => setAnswer(question.id, value)}
+                      className="space-y-3"
+                    >
+                      {question.options.map((option, index) => {
+                        const isSelected = answers[question.id] === option;
+                        return (
+                          <motion.div
+                            key={`${question.id}-${index}`}
+                            whileTap={reduce ? undefined : { scale: 0.98 }}
+                            className={cn(
+                              'group relative flex items-start gap-4 p-4 lg:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200',
+                              isSelected
+                                ? 'border-primary bg-primary/5 shadow-glow'
+                                : 'border-border/40 bg-card/20 hover:border-primary/25 hover:bg-muted/15 hover:-translate-y-0.5 hover:shadow-soft'
+                            )}
+                            onClick={() => setAnswer(question.id, option)}
+                          >
+                            <RadioGroupItem
+                              value={option}
+                              id={`opt-${question.id}-${index}`}
+                              className="mt-0.5 shrink-0"
+                            />
+                            <Label
+                              htmlFor={`opt-${question.id}-${index}`}
+                              className="flex-1 cursor-pointer text-sm lg:text-base leading-relaxed"
+                            >
+                              <span
+                                className={cn(
+                                  'font-semibold mr-2',
+                                  isSelected ? 'text-primary' : 'text-muted-foreground'
+                                )}
+                              >
+                                {String.fromCharCode(65 + index)}.
+                              </span>
+                              {option}
+                            </Label>
+                            <AnimatePresence>
+                              {isSelected && (
+                                <motion.div
+                                  initial={reduce ? undefined : { scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  exit={reduce ? undefined : { scale: 0, opacity: 0 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="mt-0.5 shrink-0"
+                                >
+                                  <Check className="w-4 h-4 text-primary" />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.div>
+                        );
+                      })}
+                    </RadioGroup>
+                  )}
+
+                  {/* Short answer */}
+                  {question.type === 'short_answer' && (
+                    <Textarea
+                      value={answers[question.id] || ''}
+                      onChange={(e) => setAnswer(question.id, e.target.value)}
+                      placeholder="Type your answer here..."
+                      className="min-h-[200px] text-base leading-relaxed bg-card/30 border-border/50 focus-visible:border-primary focus-visible:ring-primary/20 transition-all resize-y"
+                    />
+                  )}
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Prev / Next */}
+            <div className="max-w-3xl mx-auto mt-6 lg:mt-8 flex justify-between items-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={prevQuestion}
+                disabled={currentQuestionIndex === 0}
+                className="gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Previous</span>
+              </Button>
+
+              {isLastQuestion ? (
+                <Button
+                  onClick={() => {
+                    setAwardTreeOnSubmit(true);
+                    setShowSubmitDialog(true);
+                  }}
+                  variant="gradient"
+                  size="lg"
+                  className="gap-2 shadow-glow"
+                  disabled={isSubmitting}
+                >
+                  <span className="hidden sm:inline">Submit Exam</span>
+                  <span className="sm:hidden">Submit</span>
+                  <Send className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button onClick={nextQuestion} size="lg" className="gap-2">
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
 
-          <div className="mt-6 p-3 bg-background rounded-lg">
-            <div className="text-sm font-medium">Progress</div>
-            <div className="text-2xl font-bold mt-1">
-              {answeredCount}/{exam.questions.length}
+          {/* ---------- Desktop sidebar navigator ---------- */}
+          <aside className="hidden lg:flex w-72 flex-col border-l bg-background/50 backdrop-blur-sm overflow-auto shrink-0">
+            <div className="p-5">
+              <h3 className="text-sm font-semibold mb-4">Question Navigator</h3>
+
+              <div className="grid grid-cols-5 gap-2">
+                {exam.questions.map((q, index) => {
+                  const isAnswered = !!answers[q.id];
+                  const isCurrent = index === currentQuestionIndex;
+
+                  return (
+                    <motion.button
+                      key={q.id}
+                      onClick={() => goToQuestion(index)}
+                      whileTap={reduce ? undefined : { scale: 0.92 }}
+                      className={cn(
+                        'h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center',
+                        isCurrent
+                          ? 'bg-primary text-primary-foreground shadow-glow ring-2 ring-primary/30'
+                          : isAnswered
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                            : 'bg-card/60 text-muted-foreground border border-border/50 hover:border-primary/30 hover:text-foreground'
+                      )}
+                    >
+                      {isAnswered ? <Check className="w-3.5 h-3.5" /> : index + 1}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* Legend */}
+              <div className="mt-5 space-y-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 rounded bg-emerald-500" />
+                  <span className="text-muted-foreground">Answered</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 rounded bg-primary" />
+                  <span className="text-muted-foreground">Current</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 rounded border border-border/50 bg-card/60" />
+                  <span className="text-muted-foreground">Not answered</span>
+                </div>
+              </div>
+
+              {/* Progress card */}
+              <div className="mt-6 p-4 rounded-xl bg-card/60 border border-border/50">
+                <div className="text-xs font-medium text-muted-foreground mb-1">Progress</div>
+                <div className="text-3xl font-bold tabular-nums">
+                  {answeredCount}
+                  <span className="text-lg text-muted-foreground font-normal">/{exam.questions.length}</span>
+                </div>
+                <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand-gradient transition-all duration-500"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 text-xs text-muted-foreground">{progressPercent}% completed</div>
+              </div>
+
+              {/* Integrity sidebar notice */}
+              {tabSwitchCount > 0 && (
+                <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                  <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <span className="font-medium">{tabSwitchCount}/3 tab switches</span>
+                  </div>
+                  {tabSwitchCount >= 2 && (
+                    <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-500">
+                      One more will auto-submit your exam
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="text-xs text-muted-foreground">
-              {Math.round((answeredCount / exam.questions.length) * 100)}% completed
-            </div>
-          </div>
-        </aside>
+          </aside>
+        </div>
+
+        {/* ---------- Submit confirmation dialog ---------- */}
+        <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Ready to Submit?</DialogTitle>
+              <DialogDescription>
+                You have answered <strong>{answeredCount}</strong> of <strong>{exam.questions.length}</strong>{' '}
+                questions.
+                {answeredCount < exam.questions.length && (
+                  <span className="block mt-1 text-amber-500 font-medium">
+                    {exam.questions.length - answeredCount} unanswered — submit anyway?
+                  </span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            {isSubmitting ? (
+              <div className="py-10">
+                <AILoader label="Evaluating your answers…" />
+              </div>
+            ) : (
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowSubmitDialog(false)}>
+                  Keep Working
+                </Button>
+                <Button
+                  variant="gradient"
+                  onClick={() => {
+                    setShowSubmitDialog(false);
+                    if (awardTreeOnSubmit) {
+                      handleCompleteExam();
+                    } else {
+                      handleSubmit();
+                    }
+                  }}
+                >
+                  Submit Exam
+                </Button>
+              </DialogFooter>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
     </ExamSessionProtector>
   );
 }

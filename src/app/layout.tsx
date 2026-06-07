@@ -5,8 +5,14 @@ import { ReactQueryProvider } from "@/lib/api/client";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { AIBackground } from "@/components/background/ai-background";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "ShikkhaAI — Adaptive Learning Platform",
@@ -19,16 +25,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <ReactQueryProvider>
-            <TooltipProvider>
-              {children}
-              <Toaster position="top-right" />
-            </TooltipProvider>
-          </ReactQueryProvider>
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <ReactQueryProvider>
+              <TooltipProvider>
+                <AIBackground />
+                {children}
+                <Toaster position="top-right" />
+              </TooltipProvider>
+            </ReactQueryProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

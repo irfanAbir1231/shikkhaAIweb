@@ -2,12 +2,27 @@
 
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useTopicsMastery } from '@/hooks/use-topics-mastery';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { SubjectCard } from './components/subject-card';
 import { TopicsSkeleton } from './components/topics-skeleton';
-import { AlertCircle, RotateCcw, BookOpen, Trophy } from 'lucide-react';
+import { Reveal } from '@/components/motion/reveal';
+import {
+  LearningPath,
+  KnowledgeGraph,
+  TopicProgressMap,
+} from '@/components/adaptive';
+import type { PathStep, GraphNode, MapTopic } from '@/components/adaptive';
+import {
+  AlertCircle,
+  RotateCcw,
+  BookOpen,
+  Trophy,
+  Route,
+  Network,
+  LayoutGrid,
+} from 'lucide-react';
 
 export default function TopicsMasteryPage() {
   const { user } = useAuthStore();
@@ -108,6 +123,61 @@ export default function TopicsMasteryPage() {
         </CardContent>
       </Card>
 
+      {/* Adaptive Visualizations */}
+      {!isLoading && data && data.subjects.length > 0 && (
+        <div className="space-y-5">
+          {/* Learning Path */}
+          <Reveal>
+            <Card variant="glass">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Route className="w-5 h-5 text-primary" />
+                  <CardTitle>Recommended Learning Path</CardTitle>
+                </div>
+                <CardDescription>Your personalized next steps</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LearningPath steps={buildLearningPath(data.subjects)} />
+              </CardContent>
+            </Card>
+          </Reveal>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            {/* Knowledge Graph */}
+            <Reveal>
+              <Card variant="glass">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Network className="w-5 h-5 text-primary" />
+                    <CardTitle>Knowledge Graph</CardTitle>
+                  </div>
+                  <CardDescription>Topic relationships and mastery</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <KnowledgeGraph nodes={buildGraphNodes(data.subjects)} />
+                </CardContent>
+              </Card>
+            </Reveal>
+
+            {/* Topic Progress Heatmap */}
+            <Reveal>
+              <Card variant="glass">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="w-5 h-5 text-primary" />
+                    <CardTitle>Topic Progress Map</CardTitle>
+                  </div>
+                  <CardDescription>Mastery heatmap across all topics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TopicProgressMap topics={buildMapTopics(data.subjects)} columns={6} />
+                </CardContent>
+              </Card>
+            </Reveal>
+          </div>
+        </div>
+      )}
+
       {/* Subject Cards */}
       {isLoading ? (
         <TopicsSkeleton />
@@ -123,11 +193,78 @@ export default function TopicsMasteryPage() {
         </Card>
       ) : (
         <div className="space-y-5">
-          {data.subjects.map((subject: any) => (
+          {data.subjects.map((subject) => (
             <SubjectCard key={subject.subject} subject={subject} />
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function buildLearningPath(subjects: { chapters: { topics: { id: string; name: string; completion_percentage: number; is_completed: boolean; is_weak: boolean; availability_status?: string }[] }[] }[]): PathStep[] {
+  const steps: PathStep[] = [];
+  for (const subject of subjects) {
+    for (const chapter of subject.chapters) {
+      for (const topic of chapter.topics) {
+        if (topic.availability_status === 'locked') continue;
+        let status: PathStep['status'] = 'locked';
+        if (topic.is_completed) status = 'completed';
+        else if (topic.is_weak) status = 'current';
+        else if (topic.completion_percentage > 0) status = 'current';
+        else if (steps.filter((s) => s.status === 'current').length === 0) status = 'current';
+        else status = 'locked';
+        steps.push({
+          id: topic.id,
+          name: topic.name,
+          status,
+          mastery: topic.completion_percentage,
+        });
+      }
+    }
+  }
+  // Sort: completed first, then current, then locked
+  const order = { completed: 0, current: 1, locked: 2 };
+  steps.sort((a, b) => order[a.status] - order[b.status]);
+  // Limit to first 8 for visual clarity
+  return steps.slice(0, 8);
+}
+
+function buildGraphNodes(subjects: { subject: string; chapters: { topics: { id: string; name: string; completion_percentage: number; is_weak: boolean; availability_status?: string }[] }[] }[]): GraphNode[] {
+  const nodes: GraphNode[] = [];
+  for (const subject of subjects) {
+    for (const chapter of subject.chapters) {
+      for (const topic of chapter.topics) {
+        if (topic.availability_status === 'locked') continue;
+        nodes.push({
+          id: topic.id,
+          name: topic.name,
+          mastery: topic.completion_percentage,
+          isWeak: topic.is_weak,
+          subject: subject.subject,
+          group: subject.subject,
+        });
+      }
+    }
+  }
+  return nodes;
+}
+
+function buildMapTopics(subjects: { subject: string; chapters: { topics: { id: string; name: string; completion_percentage: number; is_weak: boolean; availability_status?: string }[] }[] }[]): MapTopic[] {
+  const topics: MapTopic[] = [];
+  for (const subject of subjects) {
+    for (const chapter of subject.chapters) {
+      for (const topic of chapter.topics) {
+        if (topic.availability_status === 'locked') continue;
+        topics.push({
+          id: topic.id,
+          name: topic.name,
+          mastery: topic.completion_percentage,
+          isWeak: topic.is_weak,
+          subject: subject.subject,
+        });
+      }
+    }
+  }
+  return topics;
 }
