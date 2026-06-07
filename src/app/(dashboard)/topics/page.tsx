@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useTopicsMastery } from '@/hooks/use-topics-mastery';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { SubjectCard } from './components/subject-card';
@@ -23,11 +25,17 @@ import {
   Route,
   Network,
   LayoutGrid,
+  BarChart3,
+  GraduationCap,
+  Eye,
 } from 'lucide-react';
+
+type TabValue = 'overview' | 'path' | 'insights' | 'subjects';
 
 export default function TopicsMasteryPage() {
   const { user } = useAuthStore();
   const studentId = user?.id;
+  const [activeTab, setActiveTab] = useState<TabValue>('overview');
 
   const { data, isLoading, error, refetch } = useTopicsMastery(studentId);
 
@@ -67,8 +75,10 @@ export default function TopicsMasteryPage() {
     );
   }
 
+  const hasData = !isLoading && data && data.subjects.length > 0;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Page Header */}
       <Reveal>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -89,139 +99,240 @@ export default function TopicsMasteryPage() {
         </div>
       </Reveal>
 
-      {/* Overall Progress Card */}
+      {/* Tab Navigation */}
       <Reveal>
-        <Card variant="glass">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shrink-0 shadow-glow">
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Overall Progress</h3>
-                  {isLoading ? (
-                    <p className="text-sm text-muted-foreground">Loading...</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {data?.completed_topics || 0} of {data?.total_topics || 0} topics mastered
-                    </p>
-                  )}
-                </div>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)} className="w-full">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="overview" className="gap-1.5">
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="path" className="gap-1.5">
+              <Route className="w-4 h-4" />
+              <span className="hidden sm:inline">Learning Path</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="gap-1.5">
+              <Eye className="w-4 h-4" />
+              <span className="hidden sm:inline">Insights</span>
+            </TabsTrigger>
+            <TabsTrigger value="subjects" className="gap-1.5">
+              <GraduationCap className="w-4 h-4" />
+              <span className="hidden sm:inline">Subjects</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ── Overview Tab ── */}
+          <TabsContent value="overview" className="mt-5 space-y-5">
+            {/* Overall Progress Card */}
+            <Reveal>
+              <Card variant="glass">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shrink-0 shadow-glow">
+                        <Trophy className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">Overall Progress</h3>
+                        {isLoading ? (
+                          <p className="text-sm text-muted-foreground">Loading...</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {data?.completed_topics || 0} of {data?.total_topics || 0} topics mastered
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {isLoading ? (
+                        <div className="text-3xl font-bold text-muted-foreground">...</div>
+                      ) : (
+                        <span className="text-3xl font-bold tabular-nums text-gradient">{overallPercentage}%</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    {isLoading ? (
+                      <div className="h-3 bg-muted rounded-full skeleton-shimmer" />
+                    ) : (
+                      <Progress value={overallPercentage} className="h-3" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </Reveal>
+
+            {/* AI Insight */}
+            {hasData && (
+              <Reveal>
+                <AIInsightCard>
+                  {getInsightMessage(overallPercentage, data.completed_topics, data.total_topics, data.subjects)}
+                </AIInsightCard>
+              </Reveal>
+            )}
+
+            {/* Mini previews to other tabs */}
+            {hasData && (
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Reveal>
+                  <button
+                    onClick={() => setActiveTab('path')}
+                    className="text-left w-full group"
+                  >
+                    <Card variant="glass" className="h-full transition-all hover:border-primary/40 hover:shadow-glow">
+                      <CardContent className="p-5 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                            <Route className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold">Learning Path</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {buildLearningPath(data.subjects).filter(s => s.status === 'current').length} topics in progress
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </button>
+                </Reveal>
+                <Reveal>
+                  <button
+                    onClick={() => setActiveTab('insights')}
+                    className="text-left w-full group"
+                  >
+                    <Card variant="glass" className="h-full transition-all hover:border-primary/40 hover:shadow-glow">
+                      <CardContent className="p-5 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                            <Network className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold">Knowledge Graph</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {buildGraphNodes(data.subjects).length} topics mapped
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </button>
+                </Reveal>
+                <Reveal>
+                  <button
+                    onClick={() => setActiveTab('subjects')}
+                    className="text-left w-full group"
+                  >
+                    <Card variant="glass" className="h-full transition-all hover:border-primary/40 hover:shadow-glow">
+                      <CardContent className="p-5 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                            <GraduationCap className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold">Subjects</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {data.subjects.length} subject{data.subjects.length !== 1 ? 's' : ''} with chapters
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </button>
+                </Reveal>
               </div>
-              <div className="flex items-center gap-4">
-                {isLoading ? (
-                  <div className="text-3xl font-bold text-muted-foreground">...</div>
-                ) : (
-                  <span className="text-3xl font-bold tabular-nums text-gradient">{overallPercentage}%</span>
-                )}
+            )}
+          </TabsContent>
+
+          {/* ── Learning Path Tab ── */}
+          <TabsContent value="path" className="mt-5">
+            {hasData ? (
+              <Reveal>
+                <Card variant="glass">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                        <Route className="w-4 h-4 text-white" />
+                      </div>
+                      <CardTitle>Recommended Learning Path</CardTitle>
+                    </div>
+                    <CardDescription>Your personalized next steps</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <LearningPath steps={buildLearningPath(data.subjects)} />
+                  </CardContent>
+                </Card>
+              </Reveal>
+            ) : (
+              <TopicsSkeleton />
+            )}
+          </TabsContent>
+
+          {/* ── Insights Tab ── */}
+          <TabsContent value="insights" className="mt-5 space-y-5">
+            {hasData ? (
+              <div className="grid gap-5 md:grid-cols-2">
+                <Reveal>
+                  <Card variant="glass">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                          <Network className="w-4 h-4 text-white" />
+                        </div>
+                        <CardTitle>Knowledge Graph</CardTitle>
+                      </div>
+                      <CardDescription>Topic relationships and mastery</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <KnowledgeGraph nodes={buildGraphNodes(data.subjects)} />
+                    </CardContent>
+                  </Card>
+                </Reveal>
+
+                <Reveal>
+                  <Card variant="glass">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                          <LayoutGrid className="w-4 h-4 text-white" />
+                        </div>
+                        <CardTitle>Topic Progress Map</CardTitle>
+                      </div>
+                      <CardDescription>Mastery heatmap across all topics</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <TopicProgressMap topics={buildMapTopics(data.subjects)} columns={6} />
+                    </CardContent>
+                  </Card>
+                </Reveal>
               </div>
-            </div>
-            <div className="mt-4">
-              {isLoading ? (
-                <div className="h-3 bg-muted rounded-full skeleton-shimmer" />
-              ) : (
-                <Progress value={overallPercentage} className="h-3" />
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            ) : (
+              <TopicsSkeleton />
+            )}
+          </TabsContent>
+
+          {/* ── Subjects Tab ── */}
+          <TabsContent value="subjects" className="mt-5">
+            {isLoading ? (
+              <TopicsSkeleton />
+            ) : !data || data.subjects.length === 0 ? (
+              <Card variant="glass">
+                <CardContent className="p-8 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto shadow-glow">
+                    <BookOpen className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold">No topics found</h3>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    Your curriculum topics will appear here once they are available. Check back later or contact your teacher.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Stagger className="space-y-5">
+                {data.subjects.map((subject) => (
+                  <StaggerItem key={subject.subject}>
+                    <SubjectCard subject={subject} />
+                  </StaggerItem>
+                ))}
+              </Stagger>
+            )}
+          </TabsContent>
+        </Tabs>
       </Reveal>
-
-      {/* AI Insight */}
-      {!isLoading && data && data.subjects.length > 0 && (
-        <Reveal>
-          <AIInsightCard>
-            {getInsightMessage(overallPercentage, data.completed_topics, data.total_topics, data.subjects)}
-          </AIInsightCard>
-        </Reveal>
-      )}
-
-      {/* Adaptive Visualizations */}
-      {!isLoading && data && data.subjects.length > 0 && (
-        <div className="space-y-5">
-          {/* Learning Path */}
-          <Reveal>
-            <Card variant="glass">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                    <Route className="w-4 h-4 text-white" />
-                  </div>
-                  <CardTitle>Recommended Learning Path</CardTitle>
-                </div>
-                <CardDescription>Your personalized next steps</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LearningPath steps={buildLearningPath(data.subjects)} />
-              </CardContent>
-            </Card>
-          </Reveal>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            {/* Knowledge Graph */}
-            <Reveal>
-              <Card variant="glass">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                      <Network className="w-4 h-4 text-white" />
-                    </div>
-                    <CardTitle>Knowledge Graph</CardTitle>
-                  </div>
-                  <CardDescription>Topic relationships and mastery</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <KnowledgeGraph nodes={buildGraphNodes(data.subjects)} />
-                </CardContent>
-              </Card>
-            </Reveal>
-
-            {/* Topic Progress Heatmap */}
-            <Reveal>
-              <Card variant="glass">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
-                      <LayoutGrid className="w-4 h-4 text-white" />
-                    </div>
-                    <CardTitle>Topic Progress Map</CardTitle>
-                  </div>
-                  <CardDescription>Mastery heatmap across all topics</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <TopicProgressMap topics={buildMapTopics(data.subjects)} columns={6} />
-                </CardContent>
-              </Card>
-            </Reveal>
-          </div>
-        </div>
-      )}
-
-      {/* Subject Cards */}
-      {isLoading ? (
-        <TopicsSkeleton />
-      ) : !data || data.subjects.length === 0 ? (
-        <Card variant="glass">
-          <CardContent className="p-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto shadow-glow">
-              <BookOpen className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold">No topics found</h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Your curriculum topics will appear here once they are available. Check back later or contact your teacher.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Stagger className="space-y-5">
-          {data.subjects.map((subject) => (
-            <StaggerItem key={subject.subject}>
-              <SubjectCard subject={subject} />
-            </StaggerItem>
-          ))}
-        </Stagger>
-      )}
     </div>
   );
 }
@@ -271,10 +382,8 @@ function buildLearningPath(subjects: { chapters: { topics: { id: string; name: s
       }
     }
   }
-  // Sort: completed first, then current, then locked
   const order = { completed: 0, current: 1, locked: 2 };
   steps.sort((a, b) => order[a.status] - order[b.status]);
-  // Limit to first 8 for visual clarity
   return steps.slice(0, 8);
 }
 
