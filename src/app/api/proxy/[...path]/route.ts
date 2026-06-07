@@ -75,12 +75,21 @@ async function handleProxy(request: NextRequest, method: string) {
     }
 
     // Upstream returned a non-JSON body (HTML error page, empty body, etc.)
+    // Log first 800 chars of body for debugging (visible in Vercel logs)
+    const preview = text.slice(0, 800).replace(/\s+/g, ' ').trim();
+    console.error('[proxy] Upstream non-JSON response:', {
+      url: upstreamUrl,
+      status: res.status,
+      statusText: res.statusText,
+      bodyPreview: preview,
+    });
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'UPSTREAM_ERROR',
           message: `Upstream returned ${res.status} ${res.statusText}${text ? ' (non-JSON response)' : ' (empty response)'}`,
+          debug: preview || undefined,
         },
       },
       { status: res.status >= 200 && res.status < 300 ? 502 : res.status }
