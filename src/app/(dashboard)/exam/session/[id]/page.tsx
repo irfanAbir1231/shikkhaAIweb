@@ -174,9 +174,16 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
   };
 
   const runSubmissionRef = useRef(runSubmission);
+  const questionScrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     runSubmissionRef.current = runSubmission;
   });
+
+  /* Scroll question area to top whenever question changes */
+  useEffect(() => {
+    questionScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentQuestionIndex]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -368,7 +375,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
         {/* ---------- Main content ---------- */}
         <div className="flex-1 flex overflow-hidden">
           {/* Question area */}
-          <div className="flex-1 overflow-auto p-4 lg:p-8">
+          <div ref={questionScrollRef} className="flex-1 overflow-auto p-4 lg:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentQuestionIndex}
