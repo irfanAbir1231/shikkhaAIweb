@@ -205,11 +205,11 @@ export default function ExamResultPage() {
                 mcq_correct: attempt.mcq_correct,
                 mcq_total: attempt.mcq_total,
                 weak_topics: attempt.weak_topics || [],
-                weak_subtopics: [],
+                weak_subtopics: attempt.weak_subtopics || [],
                 readiness_score: attempt.readiness_score,
                 short_answer_feedback: attempt.short_answer_feedback || [],
                 mcq_feedback: [],
-                generated_notes: [],
+                generated_notes: attempt.generated_notes || [],
               });
             }
           }

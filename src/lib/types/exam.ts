@@ -131,6 +131,8 @@ export interface AttemptResponse {
   mcq_total: number;
   readiness_score: number;
   weak_topics: WeakTopic[];
+  weak_subtopics: WeakSubtopic[];
+  generated_notes: GeneratedNote[];
   short_answer_feedback: ShortAnswerFeedback[];
   created_at: string;
 }
