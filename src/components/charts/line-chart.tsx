@@ -37,30 +37,30 @@ export function SimpleLineChart({ data, color = 'var(--chart-1)' }: SimpleLineCh
         </defs>
         <CartesianGrid
           strokeDasharray="3 3"
-          stroke="hsl(var(--border))"
+          stroke="var(--border)"
           vertical={false}
         />
         <XAxis
           dataKey="name"
-          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-          axisLine={{ stroke: 'hsl(var(--border))' }}
+          tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+          axisLine={{ stroke: 'var(--border)' }}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+          tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
           axisLine={false}
           tickLine={false}
           domain={[0, 100]}
         />
         <Tooltip
-          cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
+          cursor={{ stroke: 'var(--border)', strokeWidth: 1 }}
           contentStyle={{
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            color: 'hsl(var(--foreground))',
+            color: 'var(--foreground)',
             fontSize: '13px',
             boxShadow:
               '0 8px 30px -8px color-mix(in oklch, var(--primary) 30%, transparent)',
@@ -79,13 +79,13 @@ export function SimpleLineChart({ data, color = 'var(--chart-1)' }: SimpleLineCh
           strokeWidth={2.5}
           dot={{
             fill: color,
-            stroke: 'hsl(var(--background))',
+            stroke: 'var(--background)',
             strokeWidth: 2,
             r: 4,
           }}
           activeDot={{
             r: 6,
-            stroke: 'hsl(var(--background))',
+            stroke: 'var(--background)',
             strokeWidth: 2,
           }}
         />

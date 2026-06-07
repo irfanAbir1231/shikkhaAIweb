@@ -36,12 +36,12 @@ export function SimpleBarChart({ data, color = 'var(--chart-1)' }: SimpleBarChar
         </defs>
         <CartesianGrid
           strokeDasharray="3 3"
-          stroke="hsl(var(--border))"
+          stroke="var(--border)"
           horizontal={false}
         />
         <XAxis
           type="number"
-          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+          tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
           axisLine={false}
           tickLine={false}
           domain={[0, 100]}
@@ -49,20 +49,20 @@ export function SimpleBarChart({ data, color = 'var(--chart-1)' }: SimpleBarChar
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+          tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
           axisLine={false}
           tickLine={false}
           width={120}
         />
         <Tooltip
-          cursor={{ fill: 'hsl(var(--muted) / 0.3)' }}
+          cursor={{ fill: 'color-mix(in oklch, var(--muted) 30%, transparent)' }}
           contentStyle={{
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            color: 'hsl(var(--foreground))',
+            color: 'var(--foreground)',
             fontSize: '13px',
             boxShadow:
               '0 8px 30px -8px color-mix(in oklch, var(--primary) 30%, transparent)',
