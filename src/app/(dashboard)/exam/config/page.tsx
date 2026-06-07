@@ -42,7 +42,10 @@ import {
   Wand2,
   Target,
   Zap,
-
+  BookOpen,
+  Layers,
+  ArrowRight,
+  CheckCircle2,
 } from 'lucide-react';
 
 const configSchema = z.object({
@@ -90,8 +93,6 @@ function TopicAutocomplete({
     debouncedSearch
   );
 
-  // Sync external value prop to local search state via rAF to avoid
-  // synchronous setState-in-effect (react-hooks/set-state-in-effect).
   useEffect(() => {
     if (value === search) return;
     rafRef.current = requestAnimationFrame(() => {
@@ -207,53 +208,178 @@ function TopicAutocomplete({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Exam Preview Chips — reads existing form state                    */
+/*  Exam Summary Panel — sticky action card on the right              */
 /* ------------------------------------------------------------------ */
-function ExamPreviewChips({
+function ExamSummaryPanel({
   subject,
+  chapterName,
+  topic,
+  difficulty,
   numQuestions,
   timeLimit,
-  difficulty,
+  subtopicCount,
+  isLoading,
 }: {
   subject: string;
+  chapterName: string;
+  topic: string;
+  difficulty: string;
   numQuestions: number;
   timeLimit: number;
-  difficulty: string;
+  subtopicCount: number;
+  isLoading: boolean;
 }) {
-  const diffColor =
+  const diffConfig =
     difficulty === 'easy'
-      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+      ? { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', label: 'Easy' }
       : difficulty === 'medium'
-      ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-      : 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+      ? { color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20', label: 'Medium' }
+      : { color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', label: 'Hard' };
+
+  const ready = !!subject && !!chapterName && !!topic;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs text-muted-foreground mr-1">Preview:</span>
-      <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium glass">
-        <Target className="w-3 h-3 text-primary" />
-        {subject.charAt(0).toUpperCase() + subject.slice(1)}
-      </span>
-      <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium glass">
-        <HelpCircle className="w-3 h-3 text-primary" />
-        {numQuestions} questions
-      </span>
-      <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium glass">
-        <Clock className="w-3 h-3 text-primary" />
-        {timeLimit} min
-      </span>
-      <span
-        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium capitalize ${diffColor}`}
-      >
-        <Zap className="w-3 h-3" />
-        {difficulty}
-      </span>
+    <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+      <Reveal delay={0.2}>
+        <Card variant="glass" className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Target className="w-5 h-5 text-primary" />
+              Exam Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Config list */}
+            <div className="space-y-3">
+              <SummaryRow
+                icon={<BookOpen className="w-4 h-4" />}
+                label="Subject"
+                value={subject ? subject.charAt(0).toUpperCase() + subject.slice(1) : '—'}
+                active={!!subject}
+              />
+              <SummaryRow
+                icon={<Layers className="w-4 h-4" />}
+                label="Chapter"
+                value={chapterName || '—'}
+                active={!!chapterName}
+              />
+              <SummaryRow
+                icon={<Brain className="w-4 h-4" />}
+                label="Topic"
+                value={topic || '—'}
+                active={!!topic}
+              />
+              <SummaryRow
+                icon={<Zap className="w-4 h-4" />}
+                label="Difficulty"
+                value={
+                  <span
+                    className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${diffConfig.bg} ${diffConfig.color} ${diffConfig.border}`}
+                  >
+                    {diffConfig.label}
+                  </span>
+                }
+                active
+              />
+              <SummaryRow
+                icon={<HelpCircle className="w-4 h-4" />}
+                label="Questions"
+                value={`${numQuestions}`}
+                active
+              />
+              <SummaryRow
+                icon={<Clock className="w-4 h-4" />}
+                label="Time Limit"
+                value={`${timeLimit} min`}
+                active
+              />
+              {subtopicCount > 0 && (
+                <SummaryRow
+                  icon={<CheckCircle2 className="w-4 h-4" />}
+                  label="Focused Subtopics"
+                  value={`${subtopicCount} selected`}
+                  active
+                />
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-foreground/10 pt-4">
+              <div className="flex items-center justify-between text-sm mb-4">
+                <span className="text-muted-foreground">Est. duration</span>
+                <span className="font-semibold tabular-nums">{timeLimit} min</span>
+              </div>
+
+              <Button
+                type="submit"
+                variant="default"
+                size="xl"
+                className="w-full transition-all"
+                disabled={isLoading || !ready}
+              >
+                {isLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Generating…
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <Wand2 className="w-5 h-5" />
+                    Generate Exam
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                )}
+              </Button>
+
+              {!ready && (
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Select subject, chapter, and topic to continue
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </Reveal>
+
+      {/* Helper tip */}
+      <Reveal delay={0.3}>
+        <div className="rounded-xl border border-foreground/10 bg-muted/30 px-4 py-3 text-xs text-muted-foreground leading-relaxed">
+          <span className="font-medium text-foreground">Tip:</span> Choose specific subtopics to
+          focus your exam on weak areas. The AI adapts question difficulty based on your selection.
+        </div>
+      </Reveal>
+    </div>
+  );
+}
+
+function SummaryRow({
+  icon,
+  label,
+  value,
+  active,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+  active: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 ${active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`text-sm font-medium truncate ${active ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main Form — all business logic preserved                          */
+/*  Main Form — two-column layout with sticky summary panel           */
 /* ------------------------------------------------------------------ */
 function ExamConfigForm() {
   const router = useRouter();
@@ -298,6 +424,7 @@ function ExamConfigForm() {
   const subject = watch('subject');
   const classLevel = watch('class_level');
   const chapter = watch('chapter');
+  const topic = watch('topic');
 
   const {
     data: chapters,
@@ -367,6 +494,9 @@ function ExamConfigForm() {
     subject
   );
 
+  const selectedChapterName =
+    chapters?.find((ch: { id: string; name: string }) => ch.id === chapter)?.name || '';
+
   return (
     <div className="relative min-h-screen pb-20">
       {/* Ambient background */}
@@ -374,10 +504,10 @@ function ExamConfigForm() {
         <AIBackground />
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <Reveal>
-          <div className="space-y-1">
+          <div className="mb-6">
             <h1 className="font-heading text-3xl font-bold tracking-tight">Generate Exam</h1>
             <p className="text-muted-foreground">
               Configure your personalized practice exam
@@ -391,311 +521,297 @@ function ExamConfigForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* ── Subject & Topic ── */}
-          <Reveal delay={0.05}>
-            <Card variant="glass" className="overflow-visible">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-primary" />
-                  Subject &amp; Topic
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                {/* Subject pills */}
-                <div className="space-y-2">
-                  <Label>Subject</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {SUBJECTS.slice(0, 5).map((s) => {
-                      const active = subject === s;
-                      return (
-                        <Button
-                          key={s}
-                          type="button"
-                          variant={active ? 'gradient' : 'outline'}
-                          size="sm"
-                          onClick={() => {
-                            setValue('subject', s);
-                            setValue('chapter', '');
-                            setValue('topic', '');
-                          }}
-                          className={
-                            active
-                              ? 'ring-2 ring-primary/20'
-                              : 'border-foreground/10 hover:border-primary/30 hover:bg-primary/5'
-                          }
-                        >
-                          {s.charAt(0).toUpperCase() + s.slice(1)}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                  {errors.subject && (
-                    <p className="text-sm text-destructive">{errors.subject.message}</p>
-                  )}
-                </div>
-
-                {/* Hidden class_level */}
-                <input type="hidden" {...register('class_level')} />
-
-                {/* Chapter select */}
-                <div className="space-y-2">
-                  <Label htmlFor="chapter">Chapter</Label>
-                  <Controller
-                    name="chapter"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          setValue('topic', '');
-                        }}
-                        disabled={chapterSelectDisabled}
-                      >
-                        <SelectTrigger
-                          className="w-full glass bg-transparent border-foreground/10 focus:ring-2 focus:ring-primary/40 focus:border-primary/30 transition-all"
-                          id="chapter"
-                        >
-                          <SelectValue
-                            placeholder={
-                              chapterSelectDisabled
-                                ? 'Select subject and class first'
-                                : chaptersLoading
-                                ? 'Loading chapters…'
-                                : 'Select a chapter'
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {chaptersLoading && (
-                            <div className="px-3 py-2">
-                              <Skeleton className="h-4 w-full" />
-                            </div>
-                          )}
-                          {chaptersError && (
-                            <div className="px-3 py-2 text-sm text-destructive flex items-center gap-2">
-                              <AlertCircle className="w-4 h-4" />
-                              Failed to load chapters
-                            </div>
-                          )}
-                          {!chaptersLoading &&
-                            !chaptersError &&
-                            chapters?.map((ch) => (
-                              <SelectItem key={ch.id} value={ch.id}>
-                                {ch.chapter_number !== undefined
-                                  ? `Ch. ${ch.chapter_number}: `
-                                  : ''}
-                                {ch.name}
-                              </SelectItem>
-                            ))}
-                          {!chaptersLoading && !chaptersError && chapters?.length === 0 && (
-                            <div className="px-3 py-2 text-sm text-muted-foreground">
-                              No chapters found
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.chapter && (
-                    <p className="text-sm text-destructive">{errors.chapter.message}</p>
-                  )}
-                </div>
-
-                {/* Topic autocomplete */}
-                <div className="space-y-2">
-                  <Label htmlFor="topic">Topic</Label>
-                  <Controller
-                    name="topic"
-                    control={control}
-                    render={({ field }) => (
-                      <TopicAutocomplete
-                        value={field.value}
-                        onChange={(val) => {
-                          field.onChange(val);
-                          setSelectedSubtopicIds([]);
-                        }}
-                        disabled={topicAutocompleteDisabled}
-                        classLevel={classLevel}
-                        subject={subject}
-                        chapter={chapter}
-                        error={errors.topic?.message}
-                      />
-                    )}
-                  />
-                </div>
-
-                {/* Subtopics */}
-                {watch('topic') && (
-                  <div className="space-y-2 pt-3 border-t border-foreground/5">
-                    <button
-                      type="button"
-                      onClick={() => setShowSubtopics(!showSubtopics)}
-                      className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showSubtopics ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                      Focus on Specific Subtopics (optional)
-                    </button>
-                    {showSubtopics && (
+        {!isLoading && (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
+              {/* ═══════ LEFT COLUMN: Configuration ═══════ */}
+              <div className="space-y-6">
+                {/* ── Subject & Topic ── */}
+                <Reveal delay={0.05}>
+                  <Card variant="glass" className="overflow-visible">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Brain className="w-5 h-5 text-primary" />
+                        Subject &amp; Topic
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                      {/* Subject pills */}
                       <div className="space-y-2">
-                        {subtopicsLoading ? (
-                          <Skeleton className="h-20" />
-                        ) : !subtopics || subtopics.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
-                            No subtopics found for this topic.
-                          </p>
-                        ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {subtopics.map((st) => {
-                              const selected = selectedSubtopicIds.includes(st.id);
-                              return (
-                                <button
-                                  key={st.id}
-                                  type="button"
-                                  onClick={() => {
-                                    if (selected) {
-                                      setSelectedSubtopicIds((prev) =>
-                                        prev.filter((id) => id !== st.id)
-                                      );
-                                    } else {
-                                      setSelectedSubtopicIds((prev) => [...prev, st.id]);
-                                    }
-                                  }}
-                                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                                    selected
-                                      ? 'bg-primary text-primary-foreground border-transparent'
-                                      : 'glass text-muted-foreground border-foreground/10 hover:border-primary/30 hover:text-foreground'
-                                  }`}
-                                >
-                                  {st.name}
-                                </button>
-                              );
-                            })}
-                          </div>
+                        <Label>Subject</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {SUBJECTS.slice(0, 5).map((s) => {
+                            const active = subject === s;
+                            return (
+                              <Button
+                                key={s}
+                                type="button"
+                                variant={active ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => {
+                                  setValue('subject', s);
+                                  setValue('chapter', '');
+                                  setValue('topic', '');
+                                }}
+                                className={
+                                  active
+                                    ? 'ring-2 ring-primary/20'
+                                    : 'border-foreground/10 hover:border-primary/30 hover:bg-primary/5'
+                                }
+                              >
+                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        {errors.subject && (
+                          <p className="text-sm text-destructive">{errors.subject.message}</p>
                         )}
                       </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </Reveal>
 
-          {/* ── Exam Settings ── */}
-          <Reveal delay={0.15}>
-            <Card variant="glass">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-primary" />
-                  Exam Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Difficulty */}
-                <div className="space-y-2">
-                  <Label>Difficulty</Label>
-                  <div className="flex gap-2">
-                    {DIFFICULTIES.map((diff) => {
-                      const active = difficulty === diff;
-                      return (
-                        <Button
-                          key={diff}
-                          type="button"
-                          variant={active ? 'gradient' : 'outline'}
-                          className={`flex-1 capitalize ${
-                            active ? 'ring-2 ring-primary/20' : 'border-foreground/10 hover:border-primary/30'
-                          }`}
-                          onClick={() => setValue('difficulty', diff)}
-                        >
-                          {diff}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
+                      {/* Hidden class_level */}
+                      <input type="hidden" {...register('class_level')} />
 
-                {/* Number of questions */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Label>Number of Questions</Label>
-                    <span className="text-sm font-semibold tabular-nums text-primary">
-                      {numQuestions}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[numQuestions]}
-                    onValueChange={(value) =>
-                      setValue('num_questions', Array.isArray(value) ? value[0] : value)
-                    }
-                    min={5}
-                    max={50}
-                    step={1}
-                  />
-                </div>
+                      {/* Chapter select */}
+                      <div className="space-y-2">
+                        <Label htmlFor="chapter">Chapter</Label>
+                        <Controller
+                          name="chapter"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              value={field.value}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setValue('topic', '');
+                              }}
+                              disabled={chapterSelectDisabled}
+                            >
+                              <SelectTrigger
+                                className="w-full glass bg-transparent border-foreground/10 focus:ring-2 focus:ring-primary/40 focus:border-primary/30 transition-all"
+                                id="chapter"
+                              >
+                                <SelectValue
+                                  placeholder={
+                                    chapterSelectDisabled
+                                      ? 'Select subject and class first'
+                                      : chaptersLoading
+                                      ? 'Loading chapters…'
+                                      : 'Select a chapter'
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {chaptersLoading && (
+                                  <div className="px-3 py-2">
+                                    <Skeleton className="h-4 w-full" />
+                                  </div>
+                                )}
+                                {chaptersError && (
+                                  <div className="px-3 py-2 text-sm text-destructive flex items-center gap-2">
+                                    <AlertCircle className="w-4 h-4" />
+                                    Failed to load chapters
+                                  </div>
+                                )}
+                                {!chaptersLoading &&
+                                  !chaptersError &&
+                                  chapters?.map((ch) => (
+                                    <SelectItem key={ch.id} value={ch.id}>
+                                      {ch.chapter_number !== undefined
+                                        ? `Ch. ${ch.chapter_number}: `
+                                        : ''}
+                                      {ch.name}
+                                    </SelectItem>
+                                  ))}
+                                {!chaptersLoading && !chaptersError && chapters?.length === 0 && (
+                                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                                    No chapters found
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                        {errors.chapter && (
+                          <p className="text-sm text-destructive">{errors.chapter.message}</p>
+                        )}
+                      </div>
 
-                {/* Time limit */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Label className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      Time Limit (minutes)
-                    </Label>
-                    <span className="text-sm font-semibold tabular-nums text-primary">
-                      {timeLimit} min
-                    </span>
-                  </div>
-                  <Slider
-                    value={[timeLimit]}
-                    onValueChange={(value) =>
-                      setValue('time_limit', Array.isArray(value) ? value[0] : value)
-                    }
-                    min={10}
-                    max={180}
-                    step={5}
-                  />
-                </div>
+                      {/* Topic autocomplete */}
+                      <div className="space-y-2">
+                        <Label htmlFor="topic">Topic</Label>
+                        <Controller
+                          name="topic"
+                          control={control}
+                          render={({ field }) => (
+                            <TopicAutocomplete
+                              value={field.value}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                setSelectedSubtopicIds([]);
+                              }}
+                              disabled={topicAutocompleteDisabled}
+                              classLevel={classLevel}
+                              subject={subject}
+                              chapter={chapter}
+                              error={errors.topic?.message}
+                            />
+                          )}
+                        />
+                      </div>
 
-                {/* Preview chips */}
-                <div className="pt-2 border-t border-foreground/5">
-                  <ExamPreviewChips
-                    subject={subject}
-                    numQuestions={numQuestions}
-                    timeLimit={timeLimit}
-                    difficulty={difficulty}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </Reveal>
+                      {/* Subtopics */}
+                      {watch('topic') && (
+                        <div className="space-y-2 pt-3 border-t border-foreground/5">
+                          <button
+                            type="button"
+                            onClick={() => setShowSubtopics(!showSubtopics)}
+                            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showSubtopics ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                            Focus on Specific Subtopics (optional)
+                          </button>
+                          {showSubtopics && (
+                            <div className="space-y-2">
+                              {subtopicsLoading ? (
+                                <Skeleton className="h-20" />
+                              ) : !subtopics || subtopics.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                  No subtopics found for this topic.
+                                </p>
+                              ) : (
+                                <div className="flex flex-wrap gap-2">
+                                  {subtopics.map((st) => {
+                                    const selected = selectedSubtopicIds.includes(st.id);
+                                    return (
+                                      <button
+                                        key={st.id}
+                                        type="button"
+                                        onClick={() => {
+                                          if (selected) {
+                                            setSelectedSubtopicIds((prev) =>
+                                              prev.filter((id) => id !== st.id)
+                                            );
+                                          } else {
+                                            setSelectedSubtopicIds((prev) => [...prev, st.id]);
+                                          }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                          selected
+                                            ? 'bg-primary text-primary-foreground border-transparent'
+                                            : 'glass text-muted-foreground border-foreground/10 hover:border-primary/30 hover:text-foreground'
+                                        }`}
+                                      >
+                                        {st.name}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Reveal>
 
-          {/* ── Generate Button ── */}
-          <Reveal delay={0.25}>
-            <Button
-              type="submit"
-              variant="gradient"
-              size="xl"
-              className="w-full transition-all"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Generating…
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  <Wand2 className="w-5 h-5" />
-                  Generate Exam
-                </span>
-              )}
-            </Button>
-          </Reveal>
-        </form>
+                {/* ── Exam Settings ── */}
+                <Reveal delay={0.15}>
+                  <Card variant="glass">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <HelpCircle className="w-5 h-5 text-primary" />
+                        Exam Settings
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Difficulty */}
+                      <div className="space-y-2">
+                        <Label>Difficulty</Label>
+                        <div className="flex gap-2">
+                          {DIFFICULTIES.map((diff) => {
+                            const active = difficulty === diff;
+                            return (
+                              <Button
+                                key={diff}
+                                type="button"
+                                variant={active ? 'default' : 'outline'}
+                                className={`flex-1 capitalize ${
+                                  active ? 'ring-2 ring-primary/20' : 'border-foreground/10 hover:border-primary/30'
+                                }`}
+                                onClick={() => setValue('difficulty', diff)}
+                              >
+                                {diff}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Number of questions */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <Label>Number of Questions</Label>
+                          <span className="text-sm font-semibold tabular-nums text-primary">
+                            {numQuestions}
+                          </span>
+                        </div>
+                        <Slider
+                          value={[numQuestions]}
+                          onValueChange={(value) =>
+                            setValue('num_questions', Array.isArray(value) ? value[0] : value)
+                          }
+                          min={5}
+                          max={50}
+                          step={1}
+                        />
+                      </div>
+
+                      {/* Time limit */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <Label className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            Time Limit (minutes)
+                          </Label>
+                          <span className="text-sm font-semibold tabular-nums text-primary">
+                            {timeLimit} min
+                          </span>
+                        </div>
+                        <Slider
+                          value={[timeLimit]}
+                          onValueChange={(value) =>
+                            setValue('time_limit', Array.isArray(value) ? value[0] : value)
+                          }
+                          min={10}
+                          max={180}
+                          step={5}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Reveal>
+              </div>
+
+              {/* ═══════ RIGHT COLUMN: Sticky Summary ═══════ */}
+              <ExamSummaryPanel
+                subject={subject}
+                chapterName={selectedChapterName}
+                topic={topic}
+                difficulty={difficulty}
+                numQuestions={numQuestions}
+                timeLimit={timeLimit}
+                subtopicCount={selectedSubtopicIds.length}
+                isLoading={isLoading}
+              />
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -712,15 +828,17 @@ export default function ExamConfigPage() {
           <div className="absolute inset-0 -z-10 opacity-30">
             <AIBackground />
           </div>
-          <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-            <div className="space-y-1">
+          <div className="max-w-6xl mx-auto px-4 py-8">
+            <div className="mb-6 space-y-1">
               <Skeleton className="h-10 w-56" />
               <Skeleton className="h-5 w-72" />
             </div>
-            <div className="space-y-4">
-              <Skeleton className="h-64" />
-              <Skeleton className="h-64" />
-              <Skeleton className="h-12" />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+              <div className="space-y-6">
+                <Skeleton className="h-80" />
+                <Skeleton className="h-64" />
+              </div>
+              <Skeleton className="h-96" />
             </div>
           </div>
         </div>
