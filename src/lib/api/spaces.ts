@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { StudySpace, SpaceDocument, CreateSpacePayload } from '@/lib/types/spaces';
+import { StudySpace, SpaceDocument, CreateSpacePayload, SpaceDetail } from '@/lib/types/spaces';
 
 async function fetchSpaces(): Promise<StudySpace[]> {
   const res = await fetch('/api/proxy/spaces');
@@ -21,11 +21,11 @@ async function createSpace(payload: CreateSpacePayload): Promise<StudySpace> {
   return data.data as StudySpace;
 }
 
-async function fetchDocuments(spaceId: string): Promise<SpaceDocument[]> {
-  const res = await fetch(`/api/proxy/spaces/${spaceId}/documents`);
+async function fetchSpaceDetail(spaceId: string): Promise<SpaceDetail> {
+  const res = await fetch(`/api/proxy/spaces/${spaceId}`);
   const data = await res.json();
-  if (!data.success) throw new Error(data.error?.message || 'Failed to fetch documents');
-  return data.data as SpaceDocument[];
+  if (!data.success) throw new Error(data.error?.message || 'Failed to fetch space detail');
+  return data.data as SpaceDetail;
 }
 
 async function uploadDocument(
@@ -48,7 +48,9 @@ async function uploadDocument(
         if (xhr.status >= 200 && xhr.status < 300 && response.success) {
           resolve(response.data as SpaceDocument);
         } else if (xhr.status === 413) {
-          reject(new Error('File too large. Maximum size is 50 MB.'));
+          reject(new Error('File too large. Maximum size is 20 MB.'));
+        } else if (xhr.status === 415) {
+          reject(new Error('Only PDF files are supported.'));
         } else {
           reject(new Error(response.error?.message || 'Upload failed'));
         }
@@ -65,7 +67,7 @@ async function uploadDocument(
       reject(new Error('Upload was cancelled.'));
     });
 
-    xhr.open('POST', `/api/proxy/spaces/${spaceId}/upload`);
+    xhr.open('POST', `/api/proxy/spaces/${spaceId}/documents`);
     const formData = new FormData();
     formData.append('file', file);
     xhr.send(formData);
@@ -89,10 +91,10 @@ export function useCreateSpace() {
   });
 }
 
-export function useSpaceDocuments(spaceId: string | undefined) {
+export function useSpaceDetail(spaceId: string | undefined) {
   return useQuery({
-    queryKey: ['space-documents', spaceId],
-    queryFn: () => fetchDocuments(spaceId!),
+    queryKey: ['space-detail', spaceId],
+    queryFn: () => fetchSpaceDetail(spaceId!),
     enabled: !!spaceId,
   });
 }
@@ -103,7 +105,7 @@ export function useUploadDocument(spaceId: string | undefined) {
     mutationFn: (vars: { file: File; onProgress: (progress: number) => void }) =>
       uploadDocument(spaceId!, vars),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['space-documents', spaceId] });
+      queryClient.invalidateQueries({ queryKey: ['space-detail', spaceId] });
       queryClient.invalidateQueries({ queryKey: ['spaces'] });
     },
   });

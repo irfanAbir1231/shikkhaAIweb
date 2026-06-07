@@ -20,7 +20,7 @@ function SpaceCard({ space }: { space: StudySpace }) {
         <CardContent className="p-5 flex flex-col h-full">
           <div className="flex items-start justify-between mb-3">
             <Badge variant="outline" className="capitalize glass">
-              {space.subject}
+              {space.subject || 'General'}
             </Badge>
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <FileText className="w-3.5 h-3.5" />
@@ -38,9 +38,13 @@ function SpaceCard({ space }: { space: StudySpace }) {
 
           {!space.description && <div className="flex-1" />}
 
-          {space.class_level && (
+          {space.class_level ? (
             <p className="text-xs text-muted-foreground">
               Class {space.class_level}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              {space.document_count} document{space.document_count !== 1 ? 's' : ''}
             </p>
           )}
         </CardContent>

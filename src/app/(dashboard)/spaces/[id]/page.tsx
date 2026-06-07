@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { useSpaceDocuments } from '@/lib/api/spaces';
+import { useSpaceDetail } from '@/lib/api/spaces';
 import { PdfUploader } from '@/components/spaces/pdf-uploader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   FileText,
   CheckCircle2,
-  Clock,
   BookOpen,
 } from 'lucide-react';
 
@@ -25,22 +24,24 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
   const router = useRouter();
 
   const {
-    data: documents,
-    isLoading: docsLoading,
-    error: docsError,
-  } = useSpaceDocuments(id);
+    data: space,
+    isLoading: spaceLoading,
+    error: spaceError,
+  } = useSpaceDetail(id);
 
   useEffect(() => {
-    if (docsError) {
-      toast.error(docsError.message || 'Failed to load documents');
+    if (spaceError) {
+      toast.error(spaceError.message || 'Failed to load space');
     }
-  }, [docsError]);
+  }, [spaceError]);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
+
+  const documents = space?.documents ?? [];
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -51,9 +52,11 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gradient">Study Space</h1>
+            <h1 className="text-2xl font-bold text-gradient">
+              {space?.name ?? 'Study Space'}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              Manage your documents and upload new materials
+              {space?.subject ? `${space.subject}` : 'Manage your documents and upload new materials'}
             </p>
           </div>
         </div>
@@ -92,7 +95,7 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
               Documents
-              {documents && (
+              {!spaceLoading && (
                 <Badge variant="secondary" className="ml-1">
                   {documents.length}
                 </Badge>
@@ -100,7 +103,7 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {docsLoading ? (
+            {spaceLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 rounded-xl glass">
@@ -113,7 +116,7 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
                   </div>
                 ))}
               </div>
-            ) : !documents || documents.length === 0 ? (
+            ) : documents.length === 0 ? (
               <div className="text-center py-10">
                 <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto mb-3 shadow-glow">
                   <FileText className="w-6 h-6 text-white" />
@@ -136,13 +139,14 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{doc.original_name}</p>
+                          <p className="text-sm font-medium truncate">{doc.filename}</p>
                           <p className="text-xs text-muted-foreground">
-                            {formatFileSize(doc.file_size_bytes)}
+                            {formatFileSize(doc.size_bytes)}
+                            {doc.page_count > 0 && ` · ${doc.page_count} page${doc.page_count !== 1 ? 's' : ''}`}
                           </p>
                         </div>
 
-                        {doc.is_indexed ? (
+                        {doc.chunks_count > 0 ? (
                           <Badge
                             variant="secondary"
                             className="shrink-0 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-400/20"
@@ -152,7 +156,6 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="shrink-0 border-amber-400/30 text-amber-600 bg-amber-500/5">
-                            <Clock className="w-3 h-3 mr-1" />
                             Processing
                           </Badge>
                         )}
