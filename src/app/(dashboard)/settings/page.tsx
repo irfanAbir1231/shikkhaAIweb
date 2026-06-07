@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useUpdateStudent } from '@/lib/api/students';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useRouter } from 'next/navigation';
+
 import { toast } from 'sonner';
 import {
   User,
@@ -14,7 +14,6 @@ import {
   Moon,
   Sun,
   Monitor,
-  Globe,
   Info,
   Save,
   GraduationCap,
@@ -33,7 +32,6 @@ import {
 } from '@/components/ui/select';
 import { useTheme } from 'next-themes';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
-import { GradientText } from '@/components/ui/gradient-text';
 import { cn } from '@/lib/utils';
 
 type ThemeOption = {
@@ -62,17 +60,16 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
 ];
 
 export default function SettingsPage() {
-  const router = useRouter();
   const { user, logout, updateUser } = useAuthStore();
   const updateStudent = useUpdateStudent();
   const [selectedGrade, setSelectedGrade] = useState(user?.grade_level || '');
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'bn'>('en');
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -89,8 +86,9 @@ export default function SettingsPage() {
       });
       updateUser({ grade_level: updated.grade_level });
       toast.success('Class updated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update class');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update class';
+      toast.error(message);
     }
   };
 
@@ -107,8 +105,8 @@ export default function SettingsPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <Reveal>
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            <GradientText>Settings</GradientText>
+          <h1 className="text-3xl font-bold tracking-tight text-gradient">
+            Settings
           </h1>
           <p className="text-muted-foreground">
             Manage your account and preferences
@@ -122,7 +120,7 @@ export default function SettingsPage() {
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-brand-gradient text-white shadow-glow">
                   <User className="w-4 h-4" />
                 </div>
                 Account
@@ -130,14 +128,14 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20 text-primary text-lg font-semibold">
+                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-brand-gradient text-white text-lg font-semibold shadow-glow">
                   {user?.name?.charAt(0).toUpperCase() || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{user?.name}</p>
                   <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
                 </div>
-                <Badge variant="secondary" className="shrink-0">
+                <Badge variant="outline" className="shrink-0 glass">
                   Class {user?.grade_level}
                 </Badge>
               </div>
@@ -150,7 +148,7 @@ export default function SettingsPage() {
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-success/10 text-success">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-500">
                   <GraduationCap className="w-4 h-4" />
                 </div>
                 Class Level
@@ -165,7 +163,7 @@ export default function SettingsPage() {
                   value={selectedGrade}
                   onValueChange={(value) => value && setSelectedGrade(value)}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[180px] glass">
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
@@ -183,6 +181,7 @@ export default function SettingsPage() {
                     selectedGrade === user?.grade_level ||
                     updateStudent.isPending
                   }
+                  variant="gradient"
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Save
@@ -197,7 +196,7 @@ export default function SettingsPage() {
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/50 text-accent-foreground">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500/15 text-amber-500">
                   <Palette className="w-4 h-4" />
                 </div>
                 Appearance
@@ -214,11 +213,10 @@ export default function SettingsPage() {
                         key={option.value}
                         onClick={() => setTheme(option.value)}
                         className={cn(
-                          'relative flex flex-col items-center gap-2 rounded-xl border p-3 transition-all',
-                          'hover:border-primary/40 hover:bg-primary/5',
+                          'relative flex flex-col items-center gap-2 rounded-xl border p-3 transition-all hover-lift',
                           active
-                            ? 'border-primary bg-primary/10 shadow-glow'
-                            : 'border-border bg-card/50'
+                            ? 'border-brand-from bg-brand-from/10 shadow-glow'
+                            : 'border-border/40 glass hover:bg-muted/20'
                         )}
                         aria-pressed={active}
                         aria-label={`Set theme to ${option.label}`}
@@ -238,7 +236,7 @@ export default function SettingsPage() {
                           <p
                             className={cn(
                               'text-sm font-medium',
-                              active ? 'text-primary' : 'text-foreground'
+                              active ? 'text-foreground' : 'text-foreground'
                             )}
                           >
                             {option.label}
@@ -256,7 +254,7 @@ export default function SettingsPage() {
                   {Array.from({ length: 3 }).map((_, i) => (
                     <div
                       key={i}
-                      className="h-24 rounded-xl border border-border bg-card/50 animate-pulse"
+                      className="h-24 rounded-xl glass skeleton-shimmer"
                     />
                   ))}
                 </div>
@@ -270,7 +268,7 @@ export default function SettingsPage() {
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning/10 text-warning">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/15 text-blue-500">
                   <Languages className="w-4 h-4" />
                 </div>
                 Language
@@ -285,11 +283,10 @@ export default function SettingsPage() {
                       key={option.value}
                       onClick={() => handleLanguageChange(option.value)}
                       className={cn(
-                        'relative flex items-center gap-3 rounded-xl border p-3 transition-all text-left',
-                        'hover:border-primary/40 hover:bg-primary/5',
+                        'relative flex items-center gap-3 rounded-xl border p-3 transition-all text-left hover-lift',
                         active
-                          ? 'border-primary bg-primary/10 shadow-glow'
-                          : 'border-border bg-card/50'
+                          ? 'border-brand-from bg-brand-from/10 shadow-glow'
+                          : 'border-border/40 glass hover:bg-muted/20'
                       )}
                       aria-pressed={active}
                       aria-label={`Set language to ${option.label}`}
@@ -306,7 +303,7 @@ export default function SettingsPage() {
                         <p
                           className={cn(
                             'text-sm font-medium',
-                            active ? 'text-primary' : 'text-foreground'
+                            active ? 'text-foreground' : 'text-foreground'
                           )}
                         >
                           {option.native}
@@ -342,7 +339,7 @@ export default function SettingsPage() {
                     AI-powered adaptive learning platform
                   </p>
                 </div>
-                <Badge variant="outline" className="font-mono text-xs">
+                <Badge variant="outline" className="font-mono text-xs glass">
                   v0.1.0
                 </Badge>
               </div>

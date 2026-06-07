@@ -12,13 +12,10 @@ import { BookOpen, Bookmark, Save, FileText, Sparkles, Calendar } from 'lucide-r
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
-import { GradientText } from '@/components/ui/gradient-text';
-import { cn } from '@/lib/utils';
+
 
 export default function PersonalizedNotesPage() {
   const user = useAuthStore((s) => s.user);
-  const studentId = user?.id ?? 0;
-
   // Fetch focused practice notes
   const { data: notes, isLoading } = useNotes('focused_practice');
   const { data: savedNotes } = useSavedNotes();
@@ -39,8 +36,8 @@ export default function PersonalizedNotesPage() {
       <Reveal>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">
-              <GradientText>Personalized Notes</GradientText>
+            <h1 className="text-2xl font-bold tracking-tight text-gradient">
+              Personalized Notes
             </h1>
             <p className="text-muted-foreground">
               AI-generated notes focused only on your weak subtopics.
@@ -52,11 +49,11 @@ export default function PersonalizedNotesPage() {
       <Tabs defaultValue="focused" className="w-full">
         <Reveal delay={0.1}>
           <TabsList className="glass">
-            <TabsTrigger value="focused" className="gap-2">
+            <TabsTrigger value="focused" className="gap-2 data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
               <Sparkles className="w-3.5 h-3.5" />
               Focused Notes
             </TabsTrigger>
-            <TabsTrigger value="saved" className="gap-2">
+            <TabsTrigger value="saved" className="gap-2 data-[state=active]:bg-brand-gradient data-[state=active]:text-white data-[state=active]:shadow-glow">
               <Bookmark className="w-3.5 h-3.5" />
               Saved Notes
             </TabsTrigger>
@@ -69,14 +66,14 @@ export default function PersonalizedNotesPage() {
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-border bg-card/50 p-4 space-y-3"
+                  className="rounded-2xl glass p-4 space-y-3"
                 >
-                  <Skeleton className="h-5 w-2/3" />
-                  <Skeleton className="h-3 w-1/3" />
-                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-5 w-2/3 skeleton-shimmer" />
+                  <Skeleton className="h-3 w-1/3 skeleton-shimmer" />
+                  <Skeleton className="h-32 w-full skeleton-shimmer" />
                   <div className="flex gap-2 pt-2">
-                    <Skeleton className="h-8 w-20" />
-                    <Skeleton className="h-8 w-24" />
+                    <Skeleton className="h-8 w-20 skeleton-shimmer" />
+                    <Skeleton className="h-8 w-24 skeleton-shimmer" />
                   </div>
                 </div>
               ))}
@@ -87,8 +84,8 @@ export default function PersonalizedNotesPage() {
             <Reveal>
               <Card variant="glass" className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-5">
-                    <FileText className="w-8 h-8" />
+                  <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mb-5 shadow-glow">
+                    <FileText className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold">No Focused Notes Yet</h3>
                   <p className="text-muted-foreground text-center max-w-md mt-2 text-sm leading-relaxed">
@@ -110,7 +107,7 @@ export default function PersonalizedNotesPage() {
                         {note.title}
                       </CardTitle>
                       <Badge
-                        variant="secondary"
+                        variant="outline"
                         className="shrink-0 bg-primary/10 text-primary border-primary/20"
                       >
                         Focused
@@ -138,6 +135,7 @@ export default function PersonalizedNotesPage() {
                             bookmarked: false,
                           })
                         }
+                        className="glass hover-lift"
                       >
                         <Save className="w-3 h-3 mr-1.5" />
                         Save
@@ -151,6 +149,7 @@ export default function PersonalizedNotesPage() {
                             bookmarked: true,
                           })
                         }
+                        className="hover-lift"
                       >
                         <Bookmark className="w-3 h-3 mr-1.5" />
                         Bookmark
@@ -168,8 +167,8 @@ export default function PersonalizedNotesPage() {
             <Reveal>
               <Card variant="glass" className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-5">
-                    <BookOpen className="w-8 h-8" />
+                  <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mb-5 shadow-glow">
+                    <BookOpen className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold">No Saved Notes</h3>
                   <p className="text-muted-foreground text-center max-w-md mt-2 text-sm leading-relaxed">
