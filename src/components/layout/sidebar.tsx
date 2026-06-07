@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-  LayoutDashboard,
-  FileQuestion,
   BookOpen,
   Library,
   MessageCircle,
@@ -23,7 +21,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
-  ChevronRight,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -42,8 +39,6 @@ import { cn } from '@/lib/utils/cn';
 /*  Nav data                                                           */
 /* ------------------------------------------------------------------ */
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/exam/config', label: 'Exam', icon: FileQuestion },
   { href: '/topics', label: 'Topics', icon: BookOpen },
   { href: '/library', label: 'Library', icon: Library },
   { href: '/study-companion', label: 'Study Companion', icon: MessageCircle },
