@@ -120,6 +120,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [awardTreeOnSubmit, setAwardTreeOnSubmit] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   /* --------------------------- Handlers --------------------------- */
 
@@ -191,6 +192,12 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   /* --------------------------- Effects ---------------------------- */
 
+  /* Read sidebar collapsed state so exam session respects its width */
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    if (saved) setSidebarCollapsed(saved === 'true');
+  }, []);
+
   useEffect(() => {
     if (!exam) {
       router.push('/exam/config');
@@ -227,7 +234,12 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   return (
     <ExamSessionProtector onAutoSubmit={handleSubmit} enabled={!isSubmitted}>
-      <div className="fixed inset-0 z-50 flex flex-col">
+      <div
+        className={cn(
+          'fixed inset-0 z-50 flex flex-col',
+          sidebarCollapsed ? 'lg:left-[68px]' : 'lg:left-[260px]'
+        )}
+      >
         {/* Dimmed ambient background */}
         <div className="absolute inset-0 -z-10 opacity-25">
           <AIBackground />
