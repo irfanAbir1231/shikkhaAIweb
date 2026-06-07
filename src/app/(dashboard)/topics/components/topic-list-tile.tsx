@@ -16,7 +16,6 @@ import {
   Circle,
   Play,
   Lock,
-  Loader2,
   Target,
   Zap,
 } from 'lucide-react';
@@ -87,40 +86,40 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 rounded-lg border px-4 py-3 transition-colors',
-        isCompleted && 'border-green-200 bg-green-50/60 dark:border-green-900/40 dark:bg-green-950/20',
-        isAttempted && 'border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20',
-        isUnattempted && 'border-border bg-muted/40 hover:bg-muted/70',
-        isLocked && 'border-border bg-muted/10 opacity-70',
-        isQueued && 'border-amber-100 bg-amber-50/10 dark:border-amber-900/20'
+        'flex items-center justify-between gap-3 rounded-xl px-4 py-3 transition-all hover-lift',
+        isCompleted && 'glass border border-green-500/20 bg-green-500/5',
+        isAttempted && 'glass border border-amber-500/20 bg-amber-500/5',
+        isUnattempted && 'glass border border-border/40 hover:bg-muted/30',
+        isLocked && 'glass border border-border/20 opacity-60',
+        isQueued && 'glass border border-amber-500/10 bg-amber-500/5'
       )}
     >
       {/* Left: status icon + topic info */}
       <div className="flex items-center gap-3 min-w-0">
         {/* Status Icon */}
         {isCompleted && (
-          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30">
-            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-green-500/15">
+            <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
         )}
         {isAttempted && (
-          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30">
-            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/15">
+            <AlertCircle className="w-5 h-5 text-amber-500" />
           </div>
         )}
         {isUnattempted && (
-          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-muted">
+          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60">
             <Circle className="w-5 h-5 text-muted-foreground" />
           </div>
         )}
         {isLocked && (
-          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-muted opacity-70">
+          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-muted/40">
             <Lock className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
         {isQueued && (
-          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-amber-100/50 dark:bg-amber-900/20">
-            <Loader2 className="w-4 h-4 text-amber-600 dark:text-amber-400 animate-spin" />
+          <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/10">
+            <div className="w-4 h-4 rounded-full bg-brand-gradient animate-pulse" />
           </div>
         )}
 
@@ -137,8 +136,8 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
           <p
             className={cn(
               'text-xs',
-              isCompleted && 'text-green-700 dark:text-green-400',
-              isAttempted && 'text-amber-700 dark:text-amber-400',
+              isCompleted && 'text-green-600 dark:text-green-400',
+              isAttempted && 'text-amber-600 dark:text-amber-400',
               isUnattempted && 'text-muted-foreground',
               isLocked && 'text-muted-foreground/60',
               isQueued && 'text-amber-600 dark:text-amber-400'
@@ -160,9 +159,9 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
           variant="outline"
           className={cn(
             'tabular-nums',
-            isCompleted && 'border-green-300 text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-400',
-            isAttempted && 'border-amber-300 text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400',
-            isUnattempted && 'border-gray-300 text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400'
+            isCompleted && 'border-green-400/40 text-green-700 bg-green-500/10 dark:text-green-400',
+            isAttempted && 'border-amber-400/40 text-amber-700 bg-amber-500/10 dark:text-amber-400',
+            isUnattempted && 'border-border text-muted-foreground bg-muted/40'
           )}
         >
           {scoreText}
@@ -176,8 +175,8 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
         )}
 
         {isQueued && (
-          <Button size="sm" variant="outline" disabled className="gap-1.5 bg-amber-50/10 text-amber-600 border-amber-200">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          <Button size="sm" variant="outline" disabled className="gap-1.5 border-amber-400/30 text-amber-600 bg-amber-500/5">
+            <div className="w-3 h-3 rounded-full bg-brand-gradient animate-pulse" />
             Queued
           </Button>
         )}
@@ -186,12 +185,13 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
           isWeak ? (
             <Button
               size="sm"
-              className="gap-1.5 bg-amber-600 hover:bg-amber-700"
+              variant="gradient"
+              className="gap-1.5"
               onClick={handleWeakPractice}
               disabled={isGenerating}
             >
               {isGenerating ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <div className="w-3.5 h-3.5 rounded-full bg-white/50 animate-pulse" />
               ) : (
                 <Target className="w-3.5 h-3.5" />
               )}
@@ -199,14 +199,14 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
             </Button>
           ) : isUnattempted ? (
             <Link href={examConfigUrl}>
-              <Button size="sm" className="gap-1.5">
+              <Button size="sm" variant="gradient" className="gap-1.5">
                 <Play className="w-3.5 h-3.5" />
                 Practice
               </Button>
             </Link>
           ) : (
             <Link href={examConfigUrl}>
-              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground">
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground hover-lift">
                 <Zap className="w-3.5 h-3.5 mr-1.5" />
                 Retry
               </Button>

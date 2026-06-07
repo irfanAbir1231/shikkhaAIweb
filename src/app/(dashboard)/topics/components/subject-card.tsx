@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { MasterySubject } from '@/lib/types/analytics';
 import { ChapterAccordion } from './chapter-accordion';
+import { Stagger, StaggerItem } from '@/components/motion/reveal';
 import {
   BookOpen,
   FlaskConical,
@@ -47,12 +48,12 @@ export function SubjectCard({ subject }: SubjectCardProps) {
   const allCompleted = subject.completed_topics === subject.total_topics;
 
   return (
-    <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+    <div className="rounded-2xl glass shadow-soft overflow-hidden hover-lift transition-shadow">
       {/* Subject Header */}
-      <div className="px-5 py-4 border-b bg-muted/30">
+      <div className="px-5 py-4 border-b border-border/30 glass-strong">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-brand-gradient text-white shrink-0 shadow-glow">
               {getSubjectIcon(subject.subject)}
             </div>
             <div className="min-w-0">
@@ -82,7 +83,7 @@ export function SubjectCard({ subject }: SubjectCardProps) {
             <button
               type="button"
               onClick={() => setIsExpanded((prev) => !prev)}
-              className="p-1.5 rounded-md hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover-lift"
               aria-label={isExpanded ? 'Collapse chapters' : 'Expand chapters'}
             >
               <ChevronDown
@@ -112,13 +113,16 @@ export function SubjectCard({ subject }: SubjectCardProps) {
         )}
       >
         <div className="p-4 space-y-3">
-          {subject.chapters.map((chapter) => (
-            <ChapterAccordion
-              key={chapter.chapter_name}
-              chapter={chapter}
-              subjectName={subject.subject}
-            />
-          ))}
+          <Stagger gap={0.06}>
+            {subject.chapters.map((chapter) => (
+              <StaggerItem key={chapter.chapter_name}>
+                <ChapterAccordion
+                  chapter={chapter}
+                  subjectName={subject.subject}
+                />
+              </StaggerItem>
+            ))}
+          </Stagger>
         </div>
       </div>
     </div>

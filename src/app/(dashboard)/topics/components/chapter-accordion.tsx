@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { MasteryChapter } from '@/lib/types/analytics';
 import { TopicListTile } from './topic-list-tile';
+import { Stagger, StaggerItem } from '@/components/motion/reveal';
 import { ChevronDown, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,14 +28,14 @@ export function ChapterAccordion({ chapter, subjectName }: ChapterAccordionProps
   const totalCount = chapter.topics.length;
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-card">
+    <div className="rounded-xl glass overflow-hidden hover-lift transition-shadow">
       {/* Accordion Header */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
           'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
-          'hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
+          'hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
         )}
         aria-expanded={isOpen}
       >
@@ -81,14 +82,17 @@ export function ChapterAccordion({ chapter, subjectName }: ChapterAccordionProps
             </span>
           </div>
 
-          {chapter.topics.map((topic) => (
-            <TopicListTile
-              key={topic.id}
-              topic={topic}
-              subject={subjectName}
-              chapterName={chapter.chapter_name}
-            />
-          ))}
+          <Stagger gap={0.04}>
+            {chapter.topics.map((topic) => (
+              <StaggerItem key={topic.id}>
+                <TopicListTile
+                  topic={topic}
+                  subject={subjectName}
+                  chapterName={chapter.chapter_name}
+                />
+              </StaggerItem>
+            ))}
+          </Stagger>
         </div>
       </div>
     </div>

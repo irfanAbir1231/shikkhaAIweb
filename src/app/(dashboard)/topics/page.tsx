@@ -7,7 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { SubjectCard } from './components/subject-card';
 import { TopicsSkeleton } from './components/topics-skeleton';
-import { Reveal } from '@/components/motion/reveal';
+import { AIInsightCard } from '@/components/ui/ai-insight-card';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import {
   LearningPath,
   KnowledgeGraph,
@@ -30,19 +31,24 @@ export default function TopicsMasteryPage() {
 
   const { data, isLoading, error, refetch } = useTopicsMastery(studentId);
 
+  const overallPercentage =
+    data && data.total_topics > 0
+      ? Math.round((data.completed_topics / data.total_topics) * 100)
+      : 0;
+
   // Error state
   if (error) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Topics Mastery</h1>
+          <h1 className="text-3xl font-bold text-gradient">Topics Mastery</h1>
           <p className="text-muted-foreground">Track your progress across all subjects and chapters</p>
         </div>
-        <Card className="border-destructive/30">
+        <Card variant="glass">
           <CardContent className="p-8 text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-destructive" />
+              <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shadow-glow">
+                <AlertCircle className="w-6 h-6 text-white" />
               </div>
             </div>
             <div className="space-y-1">
@@ -51,7 +57,7 @@ export default function TopicsMasteryPage() {
                 {error instanceof Error ? error.message : 'Something went wrong while fetching your topics data.'}
               </p>
             </div>
-            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+            <Button onClick={() => refetch()} variant="gradient" className="gap-2">
               <RotateCcw className="w-4 h-4" />
               Try Again
             </Button>
@@ -61,67 +67,75 @@ export default function TopicsMasteryPage() {
     );
   }
 
-  const overallPercentage =
-    data && data.total_topics > 0
-      ? Math.round((data.completed_topics / data.total_topics) * 100)
-      : 0;
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Topics Mastery</h1>
-          <p className="text-muted-foreground">Track your progress across all subjects and chapters</p>
+      <Reveal>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gradient">Topics Mastery</h1>
+            <p className="text-muted-foreground">Track your progress across all subjects and chapters</p>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            {data && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground sm:self-center">
+                <BookOpen className="w-4 h-4" />
+                <span>
+                  {data.total_topics} topic{data.total_topics !== 1 ? 's' : ''} total
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          {data && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground sm:self-center">
-              <BookOpen className="w-4 h-4" />
-              <span>
-                {data.total_topics} topic{data.total_topics !== 1 ? 's' : ''} total
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+      </Reveal>
 
       {/* Overall Progress Card */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Trophy className="w-6 h-6 text-primary" />
+      <Reveal>
+        <Card variant="glass">
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center shrink-0 shadow-glow">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Overall Progress</h3>
+                  {isLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {data?.completed_topics || 0} of {data?.total_topics || 0} topics mastered
+                    </p>
+                  )}
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">Overall Progress</h3>
+              <div className="flex items-center gap-4">
                 {isLoading ? (
-                  <p className="text-sm text-muted-foreground">Loading...</p>
+                  <div className="text-3xl font-bold text-muted-foreground">...</div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {data?.completed_topics || 0} of {data?.total_topics || 0} topics mastered
-                  </p>
+                  <span className="text-3xl font-bold tabular-nums text-gradient">{overallPercentage}%</span>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="mt-4">
               {isLoading ? (
-                <div className="text-3xl font-bold text-muted-foreground">...</div>
+                <div className="h-3 bg-muted rounded-full skeleton-shimmer" />
               ) : (
-                <span className="text-3xl font-bold tabular-nums">{overallPercentage}%</span>
+                <Progress value={overallPercentage} className="h-3" />
               )}
             </div>
-          </div>
-          <div className="mt-4">
-            {isLoading ? (
-              <div className="h-3 bg-muted rounded-full animate-pulse" />
-            ) : (
-              <Progress value={overallPercentage} className="h-3" />
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </Reveal>
+
+      {/* AI Insight */}
+      {!isLoading && data && data.subjects.length > 0 && (
+        <Reveal>
+          <AIInsightCard>
+            {getInsightMessage(overallPercentage, data.completed_topics, data.total_topics, data.subjects)}
+          </AIInsightCard>
+        </Reveal>
+      )}
 
       {/* Adaptive Visualizations */}
       {!isLoading && data && data.subjects.length > 0 && (
@@ -131,7 +145,9 @@ export default function TopicsMasteryPage() {
             <Card variant="glass">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Route className="w-5 h-5 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                    <Route className="w-4 h-4 text-white" />
+                  </div>
                   <CardTitle>Recommended Learning Path</CardTitle>
                 </div>
                 <CardDescription>Your personalized next steps</CardDescription>
@@ -148,7 +164,9 @@ export default function TopicsMasteryPage() {
               <Card variant="glass">
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <Network className="w-5 h-5 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                      <Network className="w-4 h-4 text-white" />
+                    </div>
                     <CardTitle>Knowledge Graph</CardTitle>
                   </div>
                   <CardDescription>Topic relationships and mastery</CardDescription>
@@ -164,7 +182,9 @@ export default function TopicsMasteryPage() {
               <Card variant="glass">
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <LayoutGrid className="w-5 h-5 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center shadow-glow">
+                      <LayoutGrid className="w-4 h-4 text-white" />
+                    </div>
                     <CardTitle>Topic Progress Map</CardTitle>
                   </div>
                   <CardDescription>Mastery heatmap across all topics</CardDescription>
@@ -182,9 +202,11 @@ export default function TopicsMasteryPage() {
       {isLoading ? (
         <TopicsSkeleton />
       ) : !data || data.subjects.length === 0 ? (
-        <Card>
+        <Card variant="glass">
           <CardContent className="p-8 text-center space-y-3">
-            <BookOpen className="w-10 h-10 text-muted-foreground mx-auto" />
+            <div className="w-12 h-12 rounded-xl bg-brand-gradient flex items-center justify-center mx-auto shadow-glow">
+              <BookOpen className="w-6 h-6 text-white" />
+            </div>
             <h3 className="text-lg font-semibold">No topics found</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Your curriculum topics will appear here once they are available. Check back later or contact your teacher.
@@ -192,14 +214,40 @@ export default function TopicsMasteryPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-5">
+        <Stagger className="space-y-5">
           {data.subjects.map((subject) => (
-            <SubjectCard key={subject.subject} subject={subject} />
+            <StaggerItem key={subject.subject}>
+              <SubjectCard subject={subject} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       )}
     </div>
   );
+}
+
+function getInsightMessage(
+  percentage: number,
+  completed: number,
+  total: number,
+  subjects: { subject: string; chapters: { topics: { is_weak: boolean; completion_percentage: number }[] }[] }[]
+) {
+  if (percentage >= 90) {
+    return `Outstanding! You've mastered ${completed} of ${total} topics. You're in the top tier — consider revisiting weak areas to lock in 100%.`;
+  }
+  if (percentage >= 70) {
+    return `Great momentum! You're ${percentage}% through your curriculum. Focus on the remaining ${total - completed} topics to push past the finish line.`;
+  }
+  if (percentage >= 40) {
+    const weakSubjects = subjects
+      .filter((s) => s.chapters.some((c) => c.topics.some((t) => t.is_weak)))
+      .map((s) => s.subject);
+    if (weakSubjects.length > 0) {
+      return `You're making solid progress at ${percentage}%. Your weakest subjects are ${weakSubjects.join(', ')} — tackling those first will give you the biggest boost.`;
+    }
+    return `You're making solid progress at ${percentage}%. Keep building consistency — small daily sessions add up fast.`;
+  }
+  return `Starting strong! With ${completed} topics mastered so far, focus on one chapter at a time. The AI will guide your path as you go.`;
 }
 
 function buildLearningPath(subjects: { chapters: { topics: { id: string; name: string; completion_percentage: number; is_completed: boolean; is_weak: boolean; availability_status?: string }[] }[] }[]): PathStep[] {
