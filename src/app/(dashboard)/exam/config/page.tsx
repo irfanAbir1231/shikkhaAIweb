@@ -318,7 +318,7 @@ function ExamSummaryPanel({
                 variant="default"
                 size="lg"
                 className="w-full transition-all"
-                disabled={isLoading || !ready}
+                disabled={isLoading || !ready || (isPracticeWeak && subtopicCount === 0)}
               >
                 {isLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -337,6 +337,11 @@ function ExamSummaryPanel({
               {!ready && (
                 <p className="text-xs text-muted-foreground text-center mt-2">
                   Select subject, chapter, and topic to continue
+                </p>
+              )}
+              {ready && isPracticeWeak && subtopicCount === 0 && (
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Select at least one subtopic to practice
                 </p>
               )}
             </div>
@@ -501,20 +506,6 @@ function ExamConfigForm() {
       ? allSubtopics.filter((st) => urlWeakSubtopicIds.includes(st.id))
       : [];
 
-  // When practice-weak mode has no pre-selected weak subtopics, default to
-  // selecting all available subtopics so the generated exam tracks performance.
-  useEffect(() => {
-    if (
-      isPracticeWeak &&
-      allSubtopics &&
-      allSubtopics.length > 0 &&
-      urlWeakSubtopicIds.length === 0 &&
-      selectedSubtopicIds.length === 0
-    ) {
-      setSelectedSubtopicIds(allSubtopics.map((st) => st.id));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSubtopics, isPracticeWeak, urlWeakSubtopicIds.length]);
 
   const selectedChapterName =
     chapters?.find((ch: { id: string; name: string }) => ch.id === chapter)?.name || '';
@@ -782,6 +773,8 @@ function ExamConfigForm() {
                         <p className="text-xs text-muted-foreground">
                           {weakSubtopics.length > 0
                             ? 'These are the weak subtopics identified from your previous exam. Deselect any you do not want to focus on.'
+                            : urlWeakSubtopicIds.length === 0
+                            ? 'No weak subtopics tracked yet. Take an exam on this topic first, then return here to practice weak areas. You can still manually select subtopics below.'
                             : 'No weak subtopics found yet. Select subtopics you want to practice below.'}
                         </p>
                         {subtopicsLoading ? (

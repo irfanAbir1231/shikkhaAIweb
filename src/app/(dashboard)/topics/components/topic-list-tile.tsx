@@ -157,7 +157,7 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
         )}
 
         {isAvailable && (
-          isWeak ? (
+          isWeak && topic.weak_subtopic_ids.length > 0 ? (
             <Button
               size="sm"
               variant="gradient"
