@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -8,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MasteryTopic } from '@/lib/types/analytics';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { useExamStore } from '@/lib/stores/exam-store';
-import { useGeneratePracticeExam } from '@/lib/api/subtopics';
 import {
   CheckCircle,
   AlertCircle,
@@ -30,9 +27,6 @@ interface TopicListTileProps {
 export function TopicListTile({ topic, subject, chapterName }: TopicListTileProps) {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { setExam } = useExamStore();
-  const generatePractice = useGeneratePracticeExam();
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const availabilityStatus = topic.availability_status;
   const hasAvailability = availabilityStatus !== undefined;
@@ -48,37 +42,18 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
 
   const scoreText = `${Math.round(topic.completion_percentage)}%`;
 
-  const handleWeakPractice = async () => {
+  const handleWeakPractice = () => {
     if (!user) {
       toast.error('Please log in first');
       return;
     }
-    if (topic.weak_subtopic_ids.length === 0) {
-      // Fallback to normal exam config if no weak subtopics
-      router.push(
-        `/exam/config?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapterName)}&topic=${encodeURIComponent(topic.name)}`
-      );
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const exam = await generatePractice.mutateAsync({
-        student_id: user.id,
-        subject: subject.toLowerCase(),
-        class_level: user.grade_level || '8',
-        difficulty: 'medium',
-        num_questions: 10,
-        focus_subtopics: topic.weak_subtopic_ids,
-      });
-      setExam(exam);
-      toast.success('Practice exam generated!');
-      router.push(`/exam/session/${exam.exam_id}`);
-    } catch {
-      toast.error('Failed to generate practice exam');
-    } finally {
-      setIsGenerating(false);
-    }
+    const subtopicIdsParam =
+      topic.weak_subtopic_ids.length > 0
+        ? `&subtopic_ids=${topic.weak_subtopic_ids.join(',')}`
+        : '';
+    router.push(
+      `/exam/config?practice_weak=1&subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapterName)}&topic=${encodeURIComponent(topic.name)}${subtopicIdsParam}`
+    );
   };
 
   const examConfigUrl = `/exam/config?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapterName)}&topic=${encodeURIComponent(topic.name)}`;
@@ -188,13 +163,8 @@ export function TopicListTile({ topic, subject, chapterName }: TopicListTileProp
               variant="gradient"
               className="gap-1.5"
               onClick={handleWeakPractice}
-              disabled={isGenerating}
             >
-              {isGenerating ? (
-                <div className="w-3.5 h-3.5 rounded-full bg-white/50 animate-pulse" />
-              ) : (
-                <Target className="w-3.5 h-3.5" />
-              )}
+              <Target className="w-3.5 h-3.5" />
               Practice Weak Areas
             </Button>
           ) : isUnattempted ? (
