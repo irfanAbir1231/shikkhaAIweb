@@ -170,8 +170,26 @@ export default function StudyPlanPage() {
       return;
     }
 
-    if (selections.length === 0) {
-      toast.error('Please add at least one subject selection');
+    // Build effective selections: already-added + current in-progress selection (if any)
+    const effectiveSelections = [...selections];
+    if (currentSubject) {
+      const chapterName = currentChapter
+        ? chapters?.find((ch) => ch.id === currentChapter)?.name
+        : undefined;
+      const topicName = currentTopic
+        ? topics?.find((t) => t.id.toString() === currentTopic)?.name
+        : undefined;
+      effectiveSelections.push({
+        id: `sel_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        subject: currentSubject,
+        chapter: currentChapter || undefined,
+        chapterName: chapterName || undefined,
+        topic: topicName || undefined,
+      });
+    }
+
+    if (effectiveSelections.length === 0) {
+      toast.error('Please select a subject first');
       return;
     }
 
@@ -186,7 +204,7 @@ export default function StudyPlanPage() {
     setIsGenerating(true);
     try {
       const plan = generatePlan(user.id, {
-        selections,
+        selections: effectiveSelections,
         goal: data.goal,
         deadline: data.deadline,
         daily_hours: data.daily_hours,
