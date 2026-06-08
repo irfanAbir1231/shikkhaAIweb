@@ -35,6 +35,8 @@ import {
   Check,
   AlertTriangle,
   BookOpen,
+  TreeDeciduous,
+  Skull,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -92,6 +94,38 @@ function TimerRing({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Garden sidebar card                                               */
+/* ------------------------------------------------------------------ */
+function GardenSidebarCard() {
+  const profile = useFocusGardenStore((s) => s.profile);
+  const liveCount = profile.plants.filter((p) => !p.withered).length;
+  const deadCount = profile.plants.filter((p) => p.withered).length;
+
+  return (
+    <div className="mt-6 p-4 rounded-xl bg-card/60 border border-border/50">
+      <div className="text-xs font-medium text-muted-foreground mb-2">Focus Garden</div>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          <TreeDeciduous className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{liveCount}</span>
+          <span className="text-[10px] text-muted-foreground">live</span>
+        </div>
+        {deadCount > 0 && (
+          <div className="flex items-center gap-1.5">
+            <Skull className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+            <span className="text-sm font-semibold text-rose-700 dark:text-rose-300">{deadCount}</span>
+            <span className="text-[10px] text-muted-foreground">withered</span>
+          </div>
+        )}
+      </div>
+      <p className="mt-2 text-[10px] text-muted-foreground leading-relaxed">
+        Complete exams without tab switches to grow trees. Trees wither if you switch tabs during exams.
+      </p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page                                                              */
 /* ------------------------------------------------------------------ */
 export default function ExamSessionPage({ params }: { params: { id: string } }) {
@@ -119,13 +153,12 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [awardTreeOnSubmit, setAwardTreeOnSubmit] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   /* --------------------------- Handlers --------------------------- */
 
   /* Core submission — no React setState, safe to call from effects */
-  const runSubmission = async (awardTree: boolean) => {
+  const runSubmission = async () => {
     if (!exam || !user || isSubmitted) return;
     submitExam();
 
@@ -155,7 +188,8 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
       setLastResult(result.data);
 
-      if (awardTree) {
+      // Auto-award tree if student had no integrity violations
+      if (tabSwitchCount === 0) {
         useFocusGardenStore.getState().awardExamTree(exam.topic);
         toast.success('You earned a Scholar Tree for completing the exam!');
       }
@@ -187,13 +221,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    await runSubmission(false);
-    setIsSubmitting(false);
-  };
-
-  const handleCompleteExam = async () => {
-    setIsSubmitting(true);
-    await runSubmission(true);
+    await runSubmission();
     setIsSubmitting(false);
   };
 
@@ -223,7 +251,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     if (timeRemaining === 0 && !isSubmitted) {
-      runSubmissionRef.current(false);
+      runSubmissionRef.current();
     }
   }, [timeRemaining, isSubmitted]);
 
@@ -318,10 +346,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => {
-                setAwardTreeOnSubmit(false);
-                setShowSubmitDialog(true);
-              }}
+              onClick={() => setShowSubmitDialog(true)}
               disabled={isSubmitting}
               className="h-7 px-2 md:px-2.5"
             >
@@ -495,10 +520,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
               {isLastQuestion ? (
                 <Button
-                  onClick={() => {
-                    setAwardTreeOnSubmit(true);
-                    setShowSubmitDialog(true);
-                  }}
+                  onClick={() => setShowSubmitDialog(true)}
                   variant="gradient"
                   size="lg"
                   className="gap-2"
@@ -579,6 +601,9 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
                 <div className="mt-1.5 text-xs text-muted-foreground">{progressPercent}% completed</div>
               </div>
 
+              {/* Focus Garden card */}
+              <GardenSidebarCard />
+
               {/* Integrity sidebar notice */}
               {tabSwitchCount > 0 && (
                 <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -626,11 +651,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
                   variant="gradient"
                   onClick={() => {
                     setShowSubmitDialog(false);
-                    if (awardTreeOnSubmit) {
-                      handleCompleteExam();
-                    } else {
-                      handleSubmit();
-                    }
+                    handleSubmit();
                   }}
                 >
                   Submit Exam
