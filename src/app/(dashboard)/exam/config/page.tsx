@@ -501,6 +501,21 @@ function ExamConfigForm() {
       ? allSubtopics.filter((st) => urlWeakSubtopicIds.includes(st.id))
       : [];
 
+  // When practice-weak mode has no pre-selected weak subtopics, default to
+  // selecting all available subtopics so the generated exam tracks performance.
+  useEffect(() => {
+    if (
+      isPracticeWeak &&
+      allSubtopics &&
+      allSubtopics.length > 0 &&
+      urlWeakSubtopicIds.length === 0 &&
+      selectedSubtopicIds.length === 0
+    ) {
+      setSelectedSubtopicIds(allSubtopics.map((st) => st.id));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allSubtopics, isPracticeWeak, urlWeakSubtopicIds.length]);
+
   const selectedChapterName =
     chapters?.find((ch: { id: string; name: string }) => ch.id === chapter)?.name || '';
 
