@@ -253,10 +253,10 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
         </div>
 
         {/* ---------- Header ---------- */}
-        <header className="relative h-16 border-b bg-background/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 gap-3 shrink-0">
+        <header className="relative h-16 border-b bg-background/80 backdrop-blur-md flex items-center justify-between px-3 lg:px-6 gap-2 lg:gap-3 shrink-0">
           {/* Left — Title */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+            <div className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 shrink-0">
               <BookOpen className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
@@ -266,7 +266,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
           </div>
 
           {/* Center — Progress */}
-          <div className="flex-1 max-w-sm mx-4 hidden md:block">
+          <div className="flex-1 max-w-[10rem] md:max-w-[14rem] lg:max-w-sm mx-2 lg:mx-4 hidden md:block">
             <div className="flex items-center justify-between text-[11px] mb-1">
               <span className="text-muted-foreground">
                 {answeredCount} of {exam.questions.length} answered
@@ -284,10 +284,10 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
           </div>
 
           {/* Right — Timer + Integrity + Submit */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 lg:gap-3 shrink-0">
             {/* Desktop timer ring */}
-            <div className="hidden sm:flex items-center gap-2">
-              <TimerRing value={timerPercent} isLowTime={isLowTime} />
+            <div className="hidden sm:flex items-center gap-1.5 lg:gap-2">
+              <TimerRing value={timerPercent} isLowTime={isLowTime} size={36} />
               <div className={cn('text-[11px] font-mono font-bold tabular-nums leading-none', isLowTime && 'text-red-500')}>
                 {formatDuration(timeRemaining)}
               </div>
@@ -299,7 +299,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
             </div>
 
             {/* Integrity indicator */}
-            <div className="hidden sm:flex">
+            <div className="hidden lg:flex">
               {tabSwitchCount === 0 ? (
                 <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400" title="Exam secure">
                   <Shield className="w-4 h-4" />
@@ -320,8 +320,9 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
                 setShowSubmitDialog(true);
               }}
               disabled={isSubmitting}
+              className="h-8 px-2 lg:px-3"
             >
-              <Send className="w-3.5 h-3.5 mr-1.5" />
+              <Send className="w-3.5 h-3.5 lg:mr-1.5" />
               <span className="hidden sm:inline">Submit</span>
             </Button>
           </div>
