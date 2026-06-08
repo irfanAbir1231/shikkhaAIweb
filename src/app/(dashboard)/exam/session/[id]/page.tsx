@@ -196,6 +196,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['topics-mastery'] });
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       queryClient.invalidateQueries({ queryKey: ['weak-subtopics'] });
       queryClient.invalidateQueries({ queryKey: ['attempts'] });
