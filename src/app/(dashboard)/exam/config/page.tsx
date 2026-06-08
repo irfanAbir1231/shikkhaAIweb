@@ -774,7 +774,7 @@ function ExamConfigForm() {
                           {weakSubtopics.length > 0
                             ? 'These are the weak subtopics identified from your previous exam. Deselect any you do not want to focus on.'
                             : urlWeakSubtopicIds.length === 0
-                            ? 'No weak subtopics tracked yet. Take an exam on this topic first, then return here to practice weak areas. You can still manually select subtopics below.'
+                            ? 'No weak subtopics tracked yet. Select subtopics below to track them in your next exam — after submission, weak areas will appear here automatically.'
                             : 'No weak subtopics found yet. Select subtopics you want to practice below.'}
                         </p>
                         {subtopicsLoading ? (
