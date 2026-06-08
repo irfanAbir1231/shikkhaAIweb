@@ -300,7 +300,7 @@ function ExamSummaryPanel({
                 <SummaryRow
                   icon={<Crosshair className="w-4 h-4" />}
                   label="Focus Areas"
-                  value={`${subtopicCount} weak subtopic${subtopicCount !== 1 ? 's' : ''}`}
+                  value={`${subtopicCount} subtopic${subtopicCount !== 1 ? 's' : ''} selected`}
                   active
                 />
               )}
@@ -765,17 +765,15 @@ function ExamConfigForm() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-xs text-muted-foreground">
-                          These are the weak subtopics identified from your previous exam. Deselect any you do not want to focus on.
+                          {weakSubtopics.length > 0
+                            ? 'These are the weak subtopics identified from your previous exam. Deselect any you do not want to focus on.'
+                            : 'No weak subtopics found yet. Select subtopics you want to practice below.'}
                         </p>
                         {subtopicsLoading ? (
                           <Skeleton className="h-16" />
-                        ) : weakSubtopics.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
-                            No weak subtopics found for this topic.
-                          </p>
-                        ) : (
+                        ) : allSubtopics && allSubtopics.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
-                            {weakSubtopics.map((st) => {
+                            {allSubtopics.map((st) => {
                               const selected = selectedSubtopicIds.includes(st.id);
                               return (
                                 <button
@@ -801,6 +799,10 @@ function ExamConfigForm() {
                               );
                             })}
                           </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            No subtopics available for this topic.
+                          </p>
                         )}
                       </CardContent>
                     </Card>
