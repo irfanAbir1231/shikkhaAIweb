@@ -48,6 +48,11 @@ function detectSubject(message: string): string {
   const lower = message.toLowerCase();
   for (const [subject, keywords] of Object.entries(SUBJECT_KEYWORDS)) {
     if (keywords.some((kw) => lower.includes(kw))) {
+      // ChromaDB currently only contains 'science' curriculum data,
+      // so map biology/physics/chemistry questions to science for retrieval.
+      if (subject === 'biology' || subject === 'physics' || subject === 'chemistry') {
+        return 'science';
+      }
       return subject;
     }
   }
