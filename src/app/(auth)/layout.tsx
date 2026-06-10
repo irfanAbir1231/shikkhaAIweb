@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { GraduationCap, Sparkles, BrainCircuit, Target, BookOpen } from 'lucide-react';
 import { GradientText } from '@/components/ui/gradient-text';
+import { StudentScene } from '@/components/illustrations/student-scene';
 
 const VALUE_PROPS = [
   { text: 'Adaptive exams that learn with you', icon: BrainCircuit },
@@ -198,8 +199,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </motion.div>
 
-        {/* Middle spacer */}
-        <div className="flex-1" />
+        {/* Animated student illustration */}
+        <div className="flex-1 relative min-h-0">
+          <StudentScene />
+        </div>
 
         {/* Bottom: Tagline */}
         <motion.div
