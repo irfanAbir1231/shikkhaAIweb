@@ -17,7 +17,6 @@ import { ProgressRing } from '@/components/ui/progress-ring';
 import { AILoader } from '@/components/ui/ai-loader';
 // import { GradientText } from '@/components/ui/gradient-text';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
-import { StreakBanner } from '@/components/gamification/streak-banner';
 import { GradientText } from '@/components/ui/gradient-text';
 import { SimpleLineChart } from '@/components/charts/line-chart';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
@@ -150,15 +149,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 py-2">
-      {/* 1. Streak Banner (gamification) */}
-      <Reveal>
-        <StreakBanner 
-          streak={data.streak.current_streak} 
-          bestStreak={data.streak.longest_streak} 
-        />
-      </Reveal>
-
-      {/* 2. Greeting + AI Encouragement */}
+      {/* Greeting + AI Encouragement */}
       <Reveal>
         <div className="space-y-4">
           <div>
