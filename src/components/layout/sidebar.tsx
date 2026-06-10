@@ -21,6 +21,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  Zap,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -97,19 +98,35 @@ function NavItem({
     <Link
       href={item.href}
       className={cn(
-        'group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring relative overflow-hidden',
         isActive
-          ? 'bg-muted/70 text-foreground'
-          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+          ? 'text-primary bg-primary/10 shadow-[inset_0_0_12px_-4px_rgba(139,92,246,0.2)]'
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
       )}
       aria-current={isActive ? 'page' : undefined}
     >
-      <Icon className={cn('w-[18px] h-[18px] shrink-0', isActive && 'text-primary')} />
-      {!collapsed && <span className="truncate">{item.label}</span>}
+      {/* Active glow background */}
+      {isActive && (
+        <motion.div
+          layoutId="sidebarGlow"
+          className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent"
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        />
+      )}
+      {/* Active left border glow */}
+      {isActive && (
+        <motion.div
+          layoutId="sidebarBorder"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-full bg-primary shadow-[0_0_8px_rgba(139,92,246,0.6)]"
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        />
+      )}
+      <Icon className={cn('w-[18px] h-[18px] shrink-0 relative z-10 transition-transform duration-200', isActive && 'text-primary scale-110')} />
+      {!collapsed && <span className="truncate relative z-10">{item.label}</span>}
       {!collapsed && isActive && (
         <motion.div
           layoutId="sidebarActiveIndicator"
-          className="ml-auto w-1 h-4 rounded-full bg-primary"
+          className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_rgba(139,92,246,0.8)]"
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
       )}
@@ -157,18 +174,18 @@ export function Sidebar() {
     <TooltipProvider delay={0}>
       <aside
         className={cn(
-          'hidden lg:flex flex-col h-screen sticky top-0 border-r border-border/40 bg-background/95 backdrop-blur-sm transition-[width] duration-300 ease-in-out',
-          collapsed ? 'w-[68px]' : 'w-[260px]'
+          'hidden lg:flex flex-col h-screen sticky top-0 border-r border-border/40 bg-background/95 backdrop-blur-xl transition-[width] duration-300 ease-in-out z-40',
+          collapsed ? 'w-[72px]' : 'w-[260px]'
         )}
       >
         {/* ---------- Header ---------- */}
-        <div className={cn('flex items-center h-14 shrink-0', collapsed ? 'justify-center px-2' : 'px-3 gap-2')}>
+        <div className={cn('flex items-center h-16 shrink-0', collapsed ? 'justify-center px-2' : 'px-4 gap-2')}>
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 shadow-glow">
               <GraduationCap className="w-[18px] h-[18px] text-primary" />
             </div>
             {!collapsed && (
-              <span className="font-heading text-lg font-bold truncate">ShikkhaAI</span>
+              <span className="font-display text-xl font-bold truncate tracking-tight">ShikkhaAI</span>
             )}
           </Link>
 
@@ -176,7 +193,7 @@ export function Sidebar() {
             <button
               type="button"
               onClick={() => setCollapsed(true)}
-              className="ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Collapse sidebar"
             >
               <PanelLeftClose className="w-4 h-4" />
@@ -185,17 +202,17 @@ export function Sidebar() {
         </div>
 
         {/* ---------- New action ---------- */}
-        <div className={cn('shrink-0', collapsed ? 'px-2 pb-2' : 'px-3 pb-3')}>
+        <div className={cn('shrink-0', collapsed ? 'px-2 pb-3' : 'px-3 pb-3')}>
           {collapsed ? (
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Link
                     href="/exam/config"
-                    className="flex items-center justify-center w-10 h-10 rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-primary/30 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-glow transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label="New Exam"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-5 h-5" />
                   </Link>
                 }
               />
@@ -205,8 +222,11 @@ export function Sidebar() {
             </Tooltip>
           ) : (
             <Link href="/exam/config">
-              <Button variant="outline" className="w-full justify-start gap-2 text-sm font-medium h-9">
-                <Plus className="w-4 h-4" />
+              <Button 
+                variant="gradient" 
+                className="w-full justify-start gap-2 text-sm font-medium h-10 shadow-glow hover:shadow-glow-lg transition-shadow"
+              >
+                <Zap className="w-4 h-4" />
                 New Exam
               </Button>
             </Link>
@@ -214,7 +234,7 @@ export function Sidebar() {
         </div>
 
         {/* ---------- Nav ---------- */}
-        <nav className={cn('flex-1 overflow-y-auto space-y-0.5 scrollbar-hide', collapsed ? 'px-2' : 'px-3')}>
+        <nav className={cn('flex-1 overflow-y-auto space-y-1 scrollbar-hide', collapsed ? 'px-2' : 'px-3')}>
           {navItems.map((item) => (
             <NavItem key={item.href} item={item} collapsed={collapsed} />
           ))}
@@ -226,14 +246,26 @@ export function Sidebar() {
           <Link
             href="/settings"
             className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring relative',
               pathname === '/settings'
-                ? 'bg-muted/70 text-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                ? 'text-primary bg-primary/10 shadow-[inset_0_0_12px_-4px_rgba(139,92,246,0.2)]'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
             )}
           >
-            <Settings className={cn('w-[18px] h-[18px] shrink-0', pathname === '/settings' && 'text-primary')} />
-            {!collapsed && <span>Settings</span>}
+            {pathname === '/settings' && (
+              <>
+                <motion.div
+                  layoutId="sidebarBorderSettings"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-full bg-primary shadow-[0_0_8px_rgba(139,92,246,0.6)]"
+                />
+                <motion.div
+                  layoutId="sidebarGlowSettings"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent"
+                />
+              </>
+            )}
+            <Settings className={cn('w-[18px] h-[18px] shrink-0 relative z-10', pathname === '/settings' && 'text-primary scale-110')} />
+            {!collapsed && <span className="relative z-10">Settings</span>}
           </Link>
 
           {/* Theme */}
@@ -272,11 +304,11 @@ export function Sidebar() {
           {/* User profile */}
           {user && (
             <div className={cn(
-              'mt-2 flex items-center gap-2.5 rounded-lg border border-border/40 bg-muted/30',
-              collapsed ? 'p-1.5 justify-center' : 'p-2'
+              'mt-2 flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 backdrop-blur-sm',
+              collapsed ? 'p-1.5 justify-center' : 'p-2.5'
             )}>
               <Avatar size="sm">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold ring-1 ring-primary/20">
                   {user.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -331,29 +363,29 @@ export function MobileSidebar() {
         }
       />
       <SheetContent side="left" className="w-[280px] p-0 gap-0 bg-transparent shadow-none border-0">
-        <div className="flex flex-col h-full bg-background/95 backdrop-blur-sm border-r border-border/40">
+        <div className="flex flex-col h-full bg-background/95 backdrop-blur-xl border-r border-border/40">
           {/* Header */}
-          <div className="flex items-center h-14 px-4 gap-2">
+          <div className="flex items-center h-16 px-4 gap-2">
             <Link href="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shadow-glow">
                 <GraduationCap className="w-[18px] h-[18px] text-primary" />
               </div>
-              <span className="font-heading text-lg font-bold">ShikkhaAI</span>
+              <span className="font-display text-xl font-bold tracking-tight">ShikkhaAI</span>
             </Link>
           </div>
 
           {/* New action */}
           <div className="px-4 pb-3">
             <Link href="/exam/config" onClick={() => setOpen(false)}>
-              <Button variant="outline" className="w-full justify-start gap-2 text-sm font-medium h-9">
-                <Plus className="w-4 h-4" />
+              <Button variant="gradient" className="w-full justify-start gap-2 text-sm font-medium h-10 shadow-glow">
+                <Zap className="w-4 h-4" />
                 New Exam
               </Button>
             </Link>
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 overflow-y-auto px-3 space-y-0.5">
+          <nav className="flex-1 overflow-y-auto px-3 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -364,19 +396,21 @@ export function MobileSidebar() {
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring relative',
                     isActive
-                      ? 'bg-muted/70 text-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      ? 'text-primary bg-primary/10 shadow-[inset_0_0_12px_-4px_rgba(139,92,246,0.2)]'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                   )}
-                  aria-current={isActive ? 'page' : undefined}
                 >
-                  <Icon className={cn('w-[18px] h-[18px] shrink-0', isActive && 'text-primary')} />
-                  <span>{item.label}</span>
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-full bg-primary shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
+                  )}
+                  <Icon className={cn('w-[18px] h-[18px] shrink-0 relative z-10', isActive && 'text-primary scale-110')} />
+                  <span className="relative z-10">{item.label}</span>
                   {isActive && (
                     <motion.div
                       layoutId="mobileSidebarActive"
-                      className="ml-auto w-1 h-4 rounded-full bg-primary"
+                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_rgba(139,92,246,0.8)]"
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -391,9 +425,9 @@ export function MobileSidebar() {
               href="/settings"
               onClick={() => setOpen(false)}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 pathname === '/settings'
-                  ? 'bg-muted/70 text-foreground'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
             >
@@ -411,9 +445,9 @@ export function MobileSidebar() {
             </button>
 
             {user && (
-              <div className="mt-2 flex items-center gap-2.5 p-2 rounded-lg border border-border/40 bg-muted/30">
+              <div className="mt-2 flex items-center gap-2.5 p-2.5 rounded-xl border border-border/40 bg-muted/30">
                 <Avatar size="sm">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                  <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold ring-1 ring-primary/20">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>

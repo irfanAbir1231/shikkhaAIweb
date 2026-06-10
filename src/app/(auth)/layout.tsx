@@ -12,6 +12,46 @@ const VALUE_PROPS = [
   { text: 'Curriculum-aligned for Bangladesh', icon: BookOpen },
 ];
 
+function FloatingParticles() {
+  const particles = React.useMemo(() => {
+    return Array.from({ length: 20 }).map((_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      duration: Math.random() * 10 + 10,
+      delay: Math.random() * 5,
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-white/20"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+          }}
+          animate={{
+            y: [0, -30, 0],
+            opacity: [0.2, 0.6, 0.2],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function RotatingValueProps() {
   const reduce = useReducedMotion();
   const [index, setIndex] = React.useState(0);
@@ -53,6 +93,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="relative flex min-h-screen">
       {/* ── Left brand panel (desktop only) ── */}
       <div className="relative hidden lg:flex lg:w-5/12 xl:w-1/3 flex-col justify-between overflow-hidden bg-brand-gradient p-10">
+        {/* Floating particles */}
+        <FloatingParticles />
+
         {/* Subtle grain + vignette overlay for depth */}
         <div
           aria-hidden="true"
@@ -71,41 +114,72 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           }}
         />
 
+        {/* Glowing orbs */}
+        <motion.div
+          className="absolute top-1/4 -left-20 w-64 h-64 rounded-full bg-purple-500/20 blur-3xl"
+          animate={{ scale: [1, 1.2, 1], x: [0, 20, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-cyan-500/15 blur-3xl"
+          animate={{ scale: [1, 1.3, 1], y: [0, -30, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+        />
+
         {/* Top: Logo */}
         <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-xl bg-white/15 backdrop-blur-sm shadow-lg">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-3"
+          >
+            <span className="grid size-11 place-items-center rounded-xl bg-white/15 backdrop-blur-sm shadow-lg ring-1 ring-white/20">
               <GraduationCap className="size-6 text-white" />
             </span>
-            <span className="text-2xl font-bold tracking-tight text-white">ShikkhaAI</span>
-          </div>
+            <span className="font-display text-2xl font-bold tracking-tight text-white">ShikkhaAI</span>
+          </motion.div>
         </div>
 
         {/* Middle: Tagline */}
-        <div className="relative z-10 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="relative z-10 space-y-6"
+        >
           <h1 className="text-4xl font-bold leading-tight text-white">
             Learn smarter,{' '}
-            <GradientText as="span" animated className="text-white">
+            <GradientText as="span" animated>
               not harder
             </GradientText>
           </h1>
           <p className="max-w-xs text-base leading-relaxed text-white/70">
             Your personal AI companion for Bangladesh curriculum — adaptive exams, instant feedback, and mastery tracking.
           </p>
-        </div>
+        </motion.div>
 
         {/* Bottom: rotating value prop */}
-        <div className="relative z-10">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="relative z-10"
+        >
           <RotatingValueProps />
           <p className="mt-6 text-xs text-white/40">
             &copy; {new Date().getFullYear()} ShikkhaAI. All rights reserved.
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex flex-1 items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-md">{children}</div>
+      <div className="relative flex flex-1 items-center justify-center p-4 sm:p-8">
+        {/* Mobile background */}
+        <div className="lg:hidden absolute inset-0 bg-brand-gradient opacity-10" />
+        <div className="relative w-full max-w-md">
+          {children}
+        </div>
       </div>
     </div>
   );

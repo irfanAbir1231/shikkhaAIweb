@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,6 +30,7 @@ import { AILoader } from '@/components/ui/ai-loader';
 import { Reveal } from '@/components/motion/reveal';
 import { AIBackground } from '@/components/background/ai-background';
 import { SUBJECTS, DIFFICULTIES } from '@/lib/utils/constants';
+import { cn } from '@/lib/utils';
 import {
   Brain,
   Clock,
@@ -47,6 +49,12 @@ import {
   ArrowRight,
   CheckCircle2,
   Crosshair,
+  Atom,
+  Dna,
+  Calculator,
+  Globe,
+  PenTool,
+  FlaskConical,
 } from 'lucide-react';
 
 const configSchema = z.object({
@@ -553,31 +561,51 @@ function ExamConfigForm() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Subject pills */}
+                      {/* Subject cards */}
                       <div className="space-y-2">
                         <Label>Subject</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {SUBJECTS.slice(0, 5).map((s) => {
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {SUBJECTS.slice(0, 6).map((s) => {
                             const active = subject === s;
+                            const subjectConfig: Record<string, { icon: React.ElementType; color: string; bg: string; border: string }> = {
+                              science: { icon: FlaskConical, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+                              math: { icon: Calculator, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+                              english: { icon: PenTool, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30' },
+                              biology: { icon: Dna, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30' },
+                              physics: { icon: Atom, color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/30' },
+                              chemistry: { icon: FlaskConical, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30' },
+                            };
+                            const config = subjectConfig[s] || { icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
+                            const Icon = config.icon;
                             return (
-                              <Button
+                              <button
                                 key={s}
                                 type="button"
-                                variant={active ? 'default' : 'outline'}
-                                size="sm"
                                 onClick={() => {
                                   setValue('subject', s);
                                   setValue('chapter', '');
                                   setValue('topic', '');
                                 }}
-                                className={
+                                className={cn(
+                                  'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200',
                                   active
-                                    ? 'ring-2 ring-primary/20'
-                                    : 'border-foreground/10 hover:border-primary/30 hover:bg-primary/5'
-                                }
+                                    ? `${config.bg} ${config.border} shadow-glow`
+                                    : 'border-border/40 bg-card/30 hover:border-primary/20 hover:bg-primary/5'
+                                )}
                               >
-                                {s.charAt(0).toUpperCase() + s.slice(1)}
-                              </Button>
+                                <Icon className={cn('size-6', active ? config.color : 'text-muted-foreground')} />
+                                <span className={cn('text-sm font-medium', active ? 'text-foreground' : 'text-muted-foreground')}>
+                                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                                </span>
+                                {active && (
+                                  <motion.div
+                                    layoutId="subjectCheck"
+                                    className="absolute top-2 right-2"
+                                  >
+                                    <CheckCircle2 className={cn('size-4', config.color)} />
+                                  </motion.div>
+                                )}
+                              </button>
                             );
                           })}
                         </div>

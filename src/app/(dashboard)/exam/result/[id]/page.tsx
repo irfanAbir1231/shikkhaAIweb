@@ -14,13 +14,15 @@ import { ProgressRing } from '@/components/ui/progress-ring';
 import { AIInsightCard } from '@/components/ui/ai-insight-card';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { AIBackground } from '@/components/background/ai-background';
-import { ExamSubmitResponse, GeneratedNote, AttemptResponse, ExamResponse, McqFeedback } from '@/lib/types/exam';
+import { ExamSubmitResponse, GeneratedNote, AttemptResponse, ExamResponse, McqFeedback, ShortAnswerFeedback } from '@/lib/types/exam';
+import { triggerConfetti } from '@/lib/utils/confetti';
 import { getGradeLetter, getGradeColor } from '@/lib/utils/formatters';
+import { cn } from '@/lib/utils';
 import { useSaveNote } from '@/lib/api/notes';
 import {
   CheckCircle, XCircle, BookOpen, ArrowLeft, RotateCcw, Target, Layers,
   Save, Bookmark, FileText, ChevronRight, BookMarked, TrendingUp, TrendingDown,
-  Zap, Award, BarChart3, Lightbulb, Sparkles, Crosshair
+  Zap, Award, BarChart3, Lightbulb, Sparkles, Crosshair, MessageSquare
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -56,17 +58,28 @@ function useCountUp(target: number, duration = 1.5, delay = 0.3) {
 /* ========================================================================
    Topic stat computation
    ======================================================================== */
-function useTopicStats(exam: ExamResponse | null, mcqFeedback: McqFeedback[] | undefined) {
+function useTopicStats(
+  exam: ExamResponse | null,
+  mcqFeedback: McqFeedback[] | undefined,
+  saFeedback: ShortAnswerFeedback[] | undefined
+) {
   return useMemo(() => {
-    if (!exam?.questions?.length || !mcqFeedback?.length) return [];
+    if (!exam?.questions?.length) return [];
 
     const stats: Record<string, { correct: number; total: number }> = {};
     exam.questions.forEach((q) => {
-      if (q.type !== 'mcq') return;
       if (!stats[q.topic]) stats[q.topic] = { correct: 0, total: 0 };
       stats[q.topic].total++;
-      const fb = mcqFeedback.find((f) => f.question_id === q.id);
-      if (fb?.correct) stats[q.topic].correct++;
+
+      if (q.type === 'mcq') {
+        const fb = mcqFeedback?.find((f) => f.question_id === q.id);
+        if (fb?.correct) stats[q.topic].correct++;
+      } else if (q.type === 'short_answer') {
+        const sa = saFeedback?.find((f) => f.question_id === q.id);
+        if (sa && sa.awarded_marks >= (q.marks || 1)) {
+          stats[q.topic].correct++;
+        }
+      }
     });
 
     return Object.entries(stats)
@@ -77,7 +90,7 @@ function useTopicStats(exam: ExamResponse | null, mcqFeedback: McqFeedback[] | u
         total,
       }))
       .sort((a, b) => b.score - a.score);
-  }, [exam, mcqFeedback]);
+  }, [exam, mcqFeedback, saFeedback]);
 }
 
 /* ========================================================================
@@ -87,16 +100,23 @@ function ReviewItem({
   question,
   index,
   feedback,
+  saFeedback,
+  submittedAnswer,
   reduce,
 }: {
   question: ExamResponse['questions'][number];
   index: number;
   feedback: McqFeedback[] | undefined;
+  saFeedback?: ShortAnswerFeedback[];
+  submittedAnswer?: string;
   reduce: boolean | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const fb = feedback?.find((f) => f.question_id === question.id);
-  const isCorrect = fb?.correct;
+  const sa = saFeedback?.find((f) => f.question_id === question.id);
+  const isCorrect = question.type === 'short_answer'
+    ? (sa ? sa.awarded_marks >= (question.marks || 1) : false)
+    : fb?.correct;
 
   return (
     <div className="border rounded-xl overflow-hidden transition-colors hover:bg-muted/20">
@@ -148,6 +168,34 @@ function ReviewItem({
                 })}
               </div>
             )}
+            {question.type === 'short_answer' && (
+              <div className="space-y-2">
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/50">
+                  <p className="text-xs text-muted-foreground mb-1">Your Answer</p>
+                  <p className="text-sm text-foreground/80">
+                    {submittedAnswer || 'Your answer is not available (session expired).'}
+                  </p>
+                </div>
+                {question.correct_answer && (
+                  <div className="p-3 rounded-lg bg-success/5 border border-success/10">
+                    <p className="text-xs text-muted-foreground mb-1">Correct Answer</p>
+                    <p className="text-sm text-foreground/80">{question.correct_answer}</p>
+                  </div>
+                )}
+                {sa && (
+                  <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                    <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      AI Feedback
+                    </p>
+                    <p className="text-sm text-foreground/80 leading-relaxed">{sa.feedback}</p>
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      {sa.awarded_marks.toFixed(1)} / {question.marks} marks
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="mt-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
               <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1.5">
                 <Lightbulb className="w-3.5 h-3.5" />
@@ -171,7 +219,7 @@ export default function ExamResultPage() {
   const params = useParams();
   const examId = parseInt(params?.id as string, 10);
   const { user } = useAuthStore();
-  const { exam, lastResult } = useExamStore();
+  const { exam, lastResult, answers } = useExamStore();
   const [result, setResult] = useState<ExamSubmitResponse | null>(() =>
     lastResult && lastResult.exam_id === examId ? lastResult : null
   );
@@ -204,6 +252,8 @@ export default function ExamResultPage() {
                 score_percentage: attempt.score_percentage,
                 mcq_correct: attempt.mcq_correct,
                 mcq_total: attempt.mcq_total,
+                short_answer_total_marks: attempt.short_answer_total_marks || 0,
+                short_answer_awarded_marks: attempt.short_answer_awarded_marks || 0,
                 weak_topics: attempt.weak_topics || [],
                 weak_subtopics: attempt.weak_subtopics || [],
                 readiness_score: attempt.readiness_score,
@@ -263,7 +313,7 @@ export default function ExamResultPage() {
   };
 
   /* ---- Derived data --------------------------------------------------- */
-  const topicStats = useTopicStats(exam, result?.mcq_feedback);
+  const topicStats = useTopicStats(exam, result?.mcq_feedback, result?.short_answer_feedback);
   const strengths = topicStats.filter((t) => t.score >= 60);
   // weakness stats from per-topic breakdown (available when mcq_feedback exists)
   void topicStats;
@@ -274,6 +324,14 @@ export default function ExamResultPage() {
   const readinessCount = useCountUp(result ? Math.round(result.readiness_score) : 0, 1.5, 0.6);
 
   const isGreatScore = result ? result.score_percentage >= 70 : false;
+
+  /* Trigger confetti on great scores */
+  useEffect(() => {
+    if (isGreatScore && !reduce) {
+      const t = setTimeout(() => triggerConfetti(), 800);
+      return () => clearTimeout(t);
+    }
+  }, [isGreatScore, reduce]);
   const isGoodScore = result ? result.score_percentage >= 50 : false;
 
   /* ---- Loading state -------------------------------------------------- */
@@ -424,7 +482,12 @@ export default function ExamResultPage() {
                   {isGreatScore ? 'Excellent Work!' : isGoodScore ? 'Good Job!' : 'Keep Pushing!'}
                 </h1>
                 <p className="text-muted-foreground">
-                  {result.mcq_correct} / {result.mcq_total} questions correct
+                  {result.mcq_correct} / {result.mcq_total} MCQ correct
+                  {result.short_answer_total_marks > 0 && (
+                    <span className="ml-2">
+                      · {result.short_answer_awarded_marks.toFixed(1)} / {result.short_answer_total_marks.toFixed(0)} short answer marks
+                    </span>
+                  )}
                 </p>
               </div>
 
@@ -688,7 +751,7 @@ export default function ExamResultPage() {
         {/* =============================================================
             6. ANSWER REVIEW
             ============================================================= */}
-        {exam && result.mcq_feedback && result.mcq_feedback.length > 0 && (
+        {exam && (result.mcq_feedback?.length > 0 || result.short_answer_feedback?.length > 0) && (
           <Reveal delay={0.4}>
             <Card variant="glass">
               <CardHeader>
@@ -705,10 +768,106 @@ export default function ExamResultPage() {
                         question={question}
                         index={index}
                         feedback={result.mcq_feedback}
+                        saFeedback={result.short_answer_feedback}
+                        submittedAnswer={answers[question.id]}
                         reduce={reduce}
                       />
                     </StaggerItem>
                   ))}
+                </Stagger>
+              </CardContent>
+            </Card>
+          </Reveal>
+        )}
+
+        {/* =============================================================
+            6b. SHORT ANSWER REVIEW
+            ============================================================= */}
+        {result.short_answer_feedback && result.short_answer_feedback.length > 0 && exam && (
+          <Reveal delay={0.42}>
+            <Card variant="glass">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-primary" />
+                  Short Answer Review
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Stagger gap={0.05}>
+                  {result.short_answer_feedback.map((sa) => {
+                    const question = exam.questions.find((q) => q.id === sa.question_id);
+                    if (!question) return null;
+                    const isUnanswered = sa.status === 'unanswered';
+                    const isFullMarks = sa.awarded_marks >= (question.marks || 1);
+                    const isZeroMarks = sa.awarded_marks === 0;
+                    const qIndex = exam.questions.findIndex((q) => q.id === sa.question_id);
+                    const studentAnswer = answers[sa.question_id];
+                    return (
+                      <StaggerItem key={sa.question_id}>
+                        <div className="border rounded-xl overflow-hidden">
+                          <div className="px-4 py-3 space-y-3">
+                            <div className="flex items-center gap-2">
+                              {isUnanswered ? (
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                  Unanswered
+                                </span>
+                              ) : isFullMarks ? (
+                                <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-success/10 text-success">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Correct
+                                </span>
+                              ) : isZeroMarks ? (
+                                <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+                                  <XCircle className="w-3 h-3" />
+                                  Incorrect
+                                </span>
+                              ) : (
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                  Partial
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground">
+                                {sa.awarded_marks.toFixed(1)} / {question.marks} marks
+                              </span>
+                            </div>
+                            <p className="text-sm font-medium">
+                              Q{qIndex + 1}: {question.prompt}
+                            </p>
+                            <div className="p-3 rounded-lg bg-muted/40 border border-border/50">
+                              <p className="text-xs text-muted-foreground mb-1">Your Answer</p>
+                              <p className="text-sm text-foreground/80">
+                                {studentAnswer || 'Your answer is not available (session expired).'}
+                              </p>
+                            </div>
+                            {question.correct_answer && (
+                              <div className="p-3 rounded-lg bg-success/5 border border-success/10">
+                                <p className="text-xs text-muted-foreground mb-1">Correct Answer</p>
+                                <p className="text-sm text-foreground/80">{question.correct_answer}</p>
+                              </div>
+                            )}
+                            {sa.feedback && (
+                              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1.5">
+                                  <MessageSquare className="w-3.5 h-3.5" />
+                                  AI Feedback
+                                </p>
+                                <p className="text-sm text-foreground/80 leading-relaxed">{sa.feedback}</p>
+                              </div>
+                            )}
+                            {question.explanation && (
+                              <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                                <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1.5">
+                                  <Lightbulb className="w-3.5 h-3.5" />
+                                  Explanation
+                                </p>
+                                <p className="text-sm text-foreground/80 leading-relaxed">{question.explanation}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </StaggerItem>
+                    );
+                  })}
                 </Stagger>
               </CardContent>
             </Card>

@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +15,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AILoader } from '@/components/ui/ai-loader';
-import { GraduationCap } from 'lucide-react';
+import { GradientText } from '@/components/ui/gradient-text';
+import { GraduationCap, Eye, EyeOff, Sparkles, Check, X } from 'lucide-react';
 import { GRADE_LEVELS } from '@/lib/utils/constants';
+import { triggerSuccess } from '@/lib/utils/confetti';
 
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required').max(120, 'Name too long'),
@@ -26,19 +29,64 @@ const registerSchema = z.object({
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
+function PasswordStrength({ password }: { password: string }) {
+  const checks = [
+    { label: '6+ characters', met: password.length >= 6 },
+    { label: 'Uppercase letter', met: /[A-Z]/.test(password) },
+    { label: 'Number', met: /\d/.test(password) },
+    { label: 'Special character', met: /[!@#$%^&*]/.test(password) },
+  ];
+
+  const score = checks.filter((c) => c.met).length;
+  const colors = ['bg-destructive', 'bg-warning', 'bg-amber-400', 'bg-emerald-400', 'bg-emerald-500'];
+  const widths = ['w-0', 'w-1/4', 'w-2/4', 'w-3/4', 'w-full'];
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-1 h-1">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className={`flex-1 rounded-full transition-all duration-300 ${
+              i < score ? colors[score] : 'bg-muted'
+            }`}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-1">
+        {checks.map((check) => (
+          <div
+            key={check.label}
+            className={`flex items-center gap-1 text-[11px] transition-colors ${
+              check.met ? 'text-emerald-400' : 'text-muted-foreground'
+            }`}
+          >
+            {check.met ? <Check className="size-3" /> : <X className="size-3" />}
+            {check.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   });
+
+  const password = watch('password', '');
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
@@ -57,6 +105,7 @@ export default function RegisterPage() {
       }
 
       setUser(result.data.student);
+      triggerSuccess();
       toast.success('Account created successfully!');
       router.push('/onboarding');
     } catch (error) {
@@ -67,129 +116,151 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card variant="glass" className="border-0 shadow-soft">
-      {/* Mobile-only logo */}
-      <CardHeader className="text-center pb-2">
-        <div className="lg:hidden mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
-          <GraduationCap className="size-7" />
-        </div>
-        <CardTitle className="text-2xl font-bold">Create account</CardTitle>
-        <CardDescription>Join ShikkhaAI and start learning smarter</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              placeholder="John Doe"
-              autoComplete="name"
-              autoFocus
-              aria-invalid={errors.name ? 'true' : 'false'}
-              aria-describedby={errors.name ? 'name-error' : undefined}
-              className="h-11 transition-all duration-200 focus-visible:scale-[1.01]"
-              {...register('name')}
-            />
-            {errors.name && (
-              <p id="name-error" className="text-sm text-destructive" role="alert">
-                {errors.name.message}
-              </p>
-            )}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <Card variant="glass" className="border-0 shadow-glow-lg">
+        {/* Mobile-only logo */}
+        <CardHeader className="text-center pb-2">
+          <div className="lg:hidden mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-primary/15 text-primary shadow-glow">
+            <GraduationCap className="size-8" />
           </div>
+          <CardTitle className="text-2xl font-bold font-display">
+            Create <GradientText animated>account</GradientText>
+          </CardTitle>
+          <CardDescription>Join ShikkhaAI and start learning smarter</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                placeholder="John Doe"
+                autoComplete="name"
+                autoFocus
+                aria-invalid={errors.name ? 'true' : 'false'}
+                aria-describedby={errors.name ? 'name-error' : undefined}
+                className="h-11 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:scale-[1.01]"
+                {...register('name')}
+              />
+              {errors.name && (
+                <p id="name-error" className="text-sm text-destructive animate-shake" role="alert">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              aria-invalid={errors.email ? 'true' : 'false'}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-              className="h-11 transition-all duration-200 focus-visible:scale-[1.01]"
-              {...register('email')}
-            />
-            {errors.email && (
-              <p id="email-error" className="text-sm text-destructive" role="alert">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                aria-invalid={errors.email ? 'true' : 'false'}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                className="h-11 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:scale-[1.01]"
+                {...register('email')}
+              />
+              {errors.email && (
+                <p id="email-error" className="text-sm text-destructive animate-shake" role="alert">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="grade">Grade Level</Label>
-            <Select
-              onValueChange={(value: string | null) => {
-                if (value) setValue('grade_level', value, { shouldValidate: true });
-              }}
-            >
-              <SelectTrigger
-                id="grade"
-                aria-invalid={errors.grade_level ? 'true' : 'false'}
-                aria-describedby={errors.grade_level ? 'grade-error' : undefined}
-                className="h-11 transition-all duration-200 focus:scale-[1.01]"
+            <div className="space-y-2">
+              <Label htmlFor="grade">Grade Level</Label>
+              <Select
+                onValueChange={(value: string | null) => {
+                  if (value) setValue('grade_level', value, { shouldValidate: true });
+                }}
               >
-                <SelectValue placeholder="Select your grade" />
-              </SelectTrigger>
-              <SelectContent>
-                {GRADE_LEVELS.map((grade) => (
-                  <SelectItem key={grade} value={grade}>
-                    Class {grade}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.grade_level && (
-              <p id="grade-error" className="text-sm text-destructive" role="alert">
-                {errors.grade_level.message}
-              </p>
-            )}
-          </div>
+                <SelectTrigger
+                  id="grade"
+                  aria-invalid={errors.grade_level ? 'true' : 'false'}
+                  aria-describedby={errors.grade_level ? 'grade-error' : undefined}
+                  className="h-11 transition-all duration-200 focus:scale-[1.01]"
+                >
+                  <SelectValue placeholder="Select your grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GRADE_LEVELS.map((grade) => (
+                    <SelectItem key={grade} value={grade}>
+                      Class {grade}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.grade_level && (
+                <p id="grade-error" className="text-sm text-destructive animate-shake" role="alert">
+                  {errors.grade_level.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••"
-              autoComplete="new-password"
-              aria-invalid={errors.password ? 'true' : 'false'}
-              aria-describedby={errors.password ? 'password-error' : undefined}
-              className="h-11 transition-all duration-200 focus-visible:scale-[1.01]"
-              {...register('password')}
-            />
-            {errors.password && (
-              <p id="password-error" className="text-sm text-destructive" role="alert">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••"
+                  autoComplete="new-password"
+                  aria-invalid={errors.password ? 'true' : 'false'}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
+                  className="h-11 pr-10 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:scale-[1.01]"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              {password.length > 0 && <PasswordStrength password={password} />}
+              {errors.password && (
+                <p id="password-error" className="text-sm text-destructive animate-shake" role="alert">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
 
-          <Button
-            type="submit"
-            variant="gradient"
-            size="xl"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <AILoader compact label="Creating account…" />
-            ) : (
-              'Create Account'
-            )}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              variant="gradient"
+              size="xl"
+              className="w-full font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <AILoader compact label="Creating account…" />
+              ) : (
+                <>
+                  <Sparkles className="size-4 mr-2" />
+                  Create Account
+                </>
+              )}
+            </Button>
+          </form>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
-          <Link
-            href="/login"
-            className="font-medium text-primary underline-offset-4 hover:underline transition-colors"
-          >
-            Sign in
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link
+              href="/login"
+              className="font-medium text-primary hover:underline transition-colors"
+            >
+              Sign in
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

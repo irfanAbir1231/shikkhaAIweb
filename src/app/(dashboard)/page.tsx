@@ -17,6 +17,8 @@ import { ProgressRing } from '@/components/ui/progress-ring';
 import { AILoader } from '@/components/ui/ai-loader';
 // import { GradientText } from '@/components/ui/gradient-text';
 import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
+import { StreakBanner } from '@/components/gamification/streak-banner';
+import { GradientText } from '@/components/ui/gradient-text';
 import { SimpleLineChart } from '@/components/charts/line-chart';
 import { SimpleBarChart } from '@/components/charts/bar-chart';
 import { KnowledgeGraph } from '@/components/adaptive/knowledge-graph';
@@ -144,16 +146,25 @@ export default function DashboardPage() {
   }
 
   const encouragement = getEncouragement(data);
+  const firstName = user?.name?.split(' ')[0] || 'Student';
 
   return (
     <div className="space-y-8 py-2">
-      {/* 1. Greeting + AI Encouragement */}
+      {/* 1. Streak Banner (gamification) */}
+      <Reveal>
+        <StreakBanner 
+          streak={data.streak.current_streak} 
+          bestStreak={data.streak.longest_streak} 
+        />
+      </Reveal>
+
+      {/* 2. Greeting + AI Encouragement */}
       <Reveal>
         <div className="space-y-4">
           <div>
-            <h1 className="font-heading text-3xl font-bold tracking-tight">
-            Hello, {user?.name?.split(' ')[0] || 'Student'}!
-          </h1>
+            <h1 className="font-display text-3xl font-bold tracking-tight">
+              Hello, <GradientText animated>{firstName}</GradientText>! 👋
+            </h1>
             <p className="mt-1 text-muted-foreground">
               Welcome to your AI Command Center
             </p>
@@ -164,7 +175,7 @@ export default function DashboardPage() {
         </div>
       </Reveal>
 
-      {/* 2. Quick Actions */}
+      {/* 3. Quick Actions — enhanced with color coding */}
       <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {quickActions.map((action) => {
           const Icon = action.icon;
@@ -174,9 +185,13 @@ export default function DashboardPage() {
                 <Card
                   variant="glass"
                   interactive
-                  className="flex items-center gap-3 p-4"
+                  className="flex items-center gap-3 p-4 group"
                 >
-                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                  <div className={cn(
+                    "rounded-xl p-2.5 transition-transform duration-200 group-hover:scale-110",
+                    action.color.replace('bg-', 'bg-').replace('500', '500/15'),
+                    action.color.replace('bg-', 'text-')
+                  )}>
                     <Icon className="size-5" />
                   </div>
                   <span className="text-sm font-medium">{action.label}</span>
@@ -187,7 +202,7 @@ export default function DashboardPage() {
         })}
       </Stagger>
 
-      {/* 3. Stat Row */}
+      {/* 4. Stat Row */}
       <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StaggerItem>
           <StatCard
@@ -230,7 +245,7 @@ export default function DashboardPage() {
         </StaggerItem>
       </Stagger>
 
-      {/* 4. Mastery Overview + Focus Areas */}
+      {/* 5. Mastery Overview + Focus Areas */}
       <div className="grid gap-4 md:grid-cols-2">
         <Reveal>
           <Card variant="glass">
@@ -353,7 +368,7 @@ export default function DashboardPage() {
         </Reveal>
       </div>
 
-      {/* 5. Performance Trends */}
+      {/* 6. Performance Trends */}
       <div className="grid gap-4 md:grid-cols-2">
         <Reveal>
           <Card variant="glass">
@@ -425,7 +440,7 @@ export default function DashboardPage() {
         </Reveal>
       </div>
 
-      {/* 6. Your Knowledge Map */}
+      {/* 7. Your Knowledge Map */}
       <Reveal>
         <Card variant="glass">
           <CardHeader>
@@ -465,7 +480,7 @@ export default function DashboardPage() {
         </Card>
       </Reveal>
 
-      {/* 7. Recent Exams */}
+      {/* 8. Recent Exams */}
       <Reveal>
         <Card variant="glass">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -538,7 +553,7 @@ export default function DashboardPage() {
         </Card>
       </Reveal>
 
-      {/* 8. AI Insights / Recommendations */}
+      {/* 9. AI Insights / Recommendations */}
       <div className="space-y-4">
         <Reveal>
           <div>

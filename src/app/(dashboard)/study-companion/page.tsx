@@ -9,9 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { ChatMessage } from '@/lib/types/study-companion';
 import { EXPLANATION_MODES } from '@/lib/utils/constants';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { AILoader } from '@/components/ui/ai-loader';
+import { GradientText } from '@/components/ui/gradient-text';
 
 import {
   Send,
@@ -23,6 +25,9 @@ import {
   Sparkles,
   AlertCircle,
   RotateCcw,
+  Copy,
+  Check,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -48,8 +53,6 @@ function detectSubject(message: string): string {
   const lower = message.toLowerCase();
   for (const [subject, keywords] of Object.entries(SUBJECT_KEYWORDS)) {
     if (keywords.some((kw) => lower.includes(kw))) {
-      // ChromaDB currently only contains 'science' curriculum data,
-      // so map biology/physics/chemistry questions to science for retrieval.
       if (subject === 'biology' || subject === 'physics' || subject === 'chemistry') {
         return 'science';
       }
@@ -57,6 +60,55 @@ function detectSubject(message: string): string {
     }
   }
   return 'science';
+}
+
+/* Typing indicator */
+function TypingIndicator() {
+  return (
+    <div className="flex gap-1 p-1">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="w-2 h-2 rounded-full bg-primary/60"
+          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* Copy button for messages */
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+      title="Copy"
+    >
+      {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
+    </button>
+  );
+}
+
+/* AI Avatar with glow */
+function AIAvatar({ className }: { className?: string }) {
+  return (
+    <div className={cn(
+      "rounded-xl bg-brand-gradient flex items-center justify-center shrink-0 shadow-glow",
+      className
+    )}>
+      <Bot className="size-4 text-white" />
+    </div>
+  );
 }
 
 export default function StudyCompanionPage() {
@@ -100,7 +152,6 @@ export default function StudyCompanionPage() {
 
         if (data.success) {
           const responseText: string = data.data?.response || '';
-          // Detect if the backend accidentally returned an error as a success response
           const looksLikeError =
             responseText.includes('RAG HTTP ask failed') ||
             responseText.includes('429 Too Many Requests') ||
@@ -121,7 +172,6 @@ export default function StudyCompanionPage() {
           }
         }
 
-        // Retry on server errors or error-looking responses
         if (attempt < maxRetries && (res.status >= 500 || (data.success && data.data?.response))) {
           const delay = 1000 * (attempt + 1);
           await new Promise((r) => setTimeout(r, delay));
@@ -200,16 +250,16 @@ export default function StudyCompanionPage() {
   };
 
   return (
-    <div className="flex flex-col h-full -m-4 lg:-m-8">
+    <div className="flex flex-col h-[calc(100dvh-3.5rem)] -m-4 lg:-m-8">
       {/* Header */}
-      <div className="border-b glass px-4 py-3 lg:px-8">
+      <div className="border-b glass px-4 py-3 lg:px-8 shrink-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex items-center gap-3">
+            <AIAvatar className="w-9 h-9" />
             <div>
-              <h1 className="font-heading text-lg font-bold leading-tight">Study Companion</h1>
+              <h1 className="font-display text-lg font-bold leading-tight">
+                Study <GradientText animated>Companion</GradientText>
+              </h1>
               <p className="text-xs text-muted-foreground hidden sm:block">
                 AI tutor for your curriculum
               </p>
@@ -222,8 +272,8 @@ export default function StudyCompanionPage() {
                 key={m.value}
                 variant={mode === m.value ? 'default' : 'outline'}
                 className={cn(
-                  'cursor-pointer select-none transition-colors',
-                  mode === m.value && 'bg-primary text-primary-foreground border-0'
+                  'cursor-pointer select-none transition-all',
+                  mode === m.value && 'bg-primary text-primary-foreground border-0 shadow-glow'
                 )}
                 role="button"
                 tabIndex={0}
@@ -237,7 +287,7 @@ export default function StudyCompanionPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-muted-foreground hover:text-destructive ml-auto sm:ml-0 hover-lift"
+                className="h-7 px-2 text-muted-foreground hover:text-destructive ml-auto sm:ml-0"
                 onClick={clearChat}
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1" />
@@ -253,131 +303,164 @@ export default function StudyCompanionPage() {
         ref={scrollRef}
         className="flex-1 overflow-y-auto min-h-0 p-4 lg:p-8 scroll-smooth"
       >
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-full text-center px-2">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">How can I help you study?</h2>
-            <p className="text-muted-foreground mb-6 max-w-md text-sm sm:text-base">
-              Ask me anything about your curriculum. I can explain concepts, generate
-              practice questions, or help you prepare for exams.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg w-full">
-              {suggestedPrompts.map((prompt) => (
-                <Button
-                  key={prompt}
-                  variant="outline"
-                  className="justify-start text-left h-auto py-3 px-4 transition-colors hover:bg-accent whitespace-normal glass hover-lift"
-                  onClick={() => handleSend(prompt)}
-                >
-                  <Lightbulb className="w-4 h-4 mr-2 shrink-0 text-amber-500" />
-                  <span className="text-sm leading-snug">{prompt}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4 max-w-3xl mx-auto">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  'flex gap-2 sm:gap-3',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
+        <AnimatePresence mode="wait">
+          {messages.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex flex-col items-center justify-center min-h-full text-center px-2"
+            >
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-20 h-20 rounded-2xl bg-brand-gradient flex items-center justify-center mb-5 shadow-glow-lg"
               >
-                {message.role === 'assistant' && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                    <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                  </div>
-                )}
-                <Card
+                <Sparkles className="w-10 h-10 text-white" />
+              </motion.div>
+              <h2 className="text-2xl font-bold font-display mb-2">
+                How can I help you <GradientText animated>study?</GradientText>
+              </h2>
+              <p className="text-muted-foreground mb-8 max-w-md text-sm sm:text-base">
+                Ask me anything about your curriculum. I can explain concepts, generate
+                practice questions, or help you prepare for exams.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg w-full">
+                {suggestedPrompts.map((prompt, i) => (
+                  <motion.div
+                    key={prompt}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Button
+                      variant="outline"
+                      className="justify-start text-left h-auto py-3 px-4 transition-all hover:bg-primary/5 hover:border-primary/30 whitespace-normal w-full glass"
+                      onClick={() => handleSend(prompt)}
+                    >
+                      <Lightbulb className="w-4 h-4 mr-2 shrink-0 text-amber-500" />
+                      <span className="text-sm leading-snug">{prompt}</span>
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-5 max-w-3xl mx-auto"
+            >
+              {messages.map((message, i) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i === messages.length - 1 ? 0.1 : 0 }}
                   className={cn(
-                    'max-w-[85%] sm:max-w-[75%] p-2.5 sm:p-3',
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : message.isError
-                        ? 'border-destructive/30 bg-destructive/5'
-                        : 'glass'
+                    'flex gap-2 sm:gap-3',
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
-                  {message.isError ? (
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-destructive">
-                            Unable to get a response
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            The AI tutor is temporarily unavailable. Please try again in a moment.
-                          </p>
-                        </div>
-                      </div>
-                      {message.retryText && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="self-start h-7 text-xs gap-1"
-                          onClick={() => handleRetry(message.retryText!)}
-                          disabled={isLoading}
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          Retry
-                        </Button>
-                      )}
-                    </div>
-                  ) : message.isLoading ? (
-                    <AILoader compact label="Thinking..." />
-                  ) : (
-                    <div
+                  {message.role === 'assistant' && (
+                    <AIAvatar className="w-8 h-8 mt-1" />
+                  )}
+                  <div className={cn(
+                    'max-w-[85%] sm:max-w-[75%]',
+                    message.role === 'user' ? 'order-1' : 'order-2'
+                  )}>
+                    <Card
                       className={cn(
-                        'prose prose-sm max-w-none',
+                        'p-3 sm:p-4',
                         message.role === 'user'
-                          ? 'prose-invert prose-p:text-primary-foreground prose-headings:text-primary-foreground prose-strong:text-primary-foreground prose-code:text-primary-foreground prose-code:bg-primary-foreground/20'
-                          : 'dark:prose-invert'
+                          ? 'bg-primary/90 text-primary-foreground border-primary/30'
+                          : message.isError
+                            ? 'border-destructive/30 bg-destructive/5'
+                            : 'glass'
                       )}
                     >
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                  {message.sources && message.sources.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-border/40">
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <BookOpen className="w-3 h-3 shrink-0" />
-                        <span className="truncate">
-                          Sources: {message.sources.join(', ')}
-                        </span>
-                      </p>
-                    </div>
-                  )}
-                </Card>
-                {message.role === 'user' && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center shrink-0 mt-1">
-                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-foreground" />
+                      {message.isError ? (
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-destructive">
+                                Unable to get a response
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                The AI tutor is temporarily unavailable. Please try again in a moment.
+                              </p>
+                            </div>
+                          </div>
+                          {message.retryText && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="self-start h-7 text-xs gap-1"
+                              onClick={() => handleRetry(message.retryText!)}
+                              disabled={isLoading}
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              Retry
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <div
+                          className={cn(
+                            'prose prose-sm max-w-none',
+                            message.role === 'user'
+                              ? 'prose-invert prose-p:text-primary-foreground prose-headings:text-primary-foreground prose-strong:text-primary-foreground prose-code:text-primary-foreground prose-code:bg-primary-foreground/20'
+                              : 'dark:prose-invert'
+                          )}
+                        >
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
+                    </Card>
+                    {/* Message actions */}
+                    {message.role === 'assistant' && !message.isError && (
+                      <div className="flex items-center gap-1 mt-1.5 opacity-0 hover:opacity-100 transition-opacity">
+                        <CopyButton text={message.content} />
+                      </div>
+                    )}
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-border/40">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <BookOpen className="w-3 h-3 shrink-0" />
+                          <span className="truncate">
+                            Sources: {message.sources.join(', ')}
+                          </span>
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
-            {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-              <div className="flex gap-2 sm:gap-3 justify-start">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                  <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                  {message.role === 'user' && (
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-1 order-2">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+                <div className="flex gap-2 sm:gap-3 justify-start">
+                  <AIAvatar className="w-8 h-8 mt-1" />
+                  <Card className="glass p-3">
+                    <TypingIndicator />
+                  </Card>
                 </div>
-                <Card className="glass p-3">
-                  <AILoader compact label="Thinking..." />
-                </Card>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Input */}
-      <div className="border-t glass p-3 sm:p-4 lg:px-8">
+      <div className="border-t glass p-3 sm:p-4 lg:px-8 shrink-0">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -389,7 +472,7 @@ export default function StudyCompanionPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask anything about your studies..."
-            className="flex-1 h-10 sm:h-11 glass"
+            className="flex-1 h-11 glass bg-background/50"
             disabled={isLoading}
             enterKeyHint="send"
           />
@@ -397,7 +480,7 @@ export default function StudyCompanionPage() {
             type="submit"
             disabled={isLoading || !input.trim()}
             variant="gradient"
-            className="h-10 sm:h-11 px-3 sm:px-4 shrink-0"
+            className="h-11 px-4 shrink-0"
           >
             <Send className="w-4 h-4 sm:mr-1.5" />
             <span className="hidden sm:inline">Send</span>

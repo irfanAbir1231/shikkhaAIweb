@@ -126,6 +126,17 @@ function GardenSidebarCard() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Helpers                                                           */
+/* ------------------------------------------------------------------ */
+function stripOptionPrefix(option: string): string {
+  let cleaned = option.trim();
+  while (/^[A-D][\.\)\-]\s*/.test(cleaned)) {
+    cleaned = cleaned.replace(/^[A-D][\.\)\-]\s*/, '').trim();
+  }
+  return cleaned;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page                                                              */
 /* ------------------------------------------------------------------ */
 export default function ExamSessionPage({ params }: { params: { id: string } }) {
@@ -153,7 +164,6 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   /* --------------------------- Handlers --------------------------- */
 
@@ -228,12 +238,6 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   /* --------------------------- Effects ---------------------------- */
 
-  /* Read sidebar collapsed state so exam session respects its width */
-  useEffect(() => {
-    const saved = localStorage.getItem('sidebar-collapsed');
-    if (saved) setSidebarCollapsed(saved === 'true');
-  }, []);
-
   useEffect(() => {
     if (!exam) {
       router.push('/exam/config');
@@ -270,14 +274,9 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   return (
     <ExamSessionProtector onAutoSubmit={handleSubmit} enabled={!isSubmitted}>
-      <div
-        className={cn(
-          'fixed inset-0 z-50 flex flex-col',
-          sidebarCollapsed ? 'lg:left-[68px]' : 'lg:left-[260px]'
-        )}
-      >
+      <div className="relative flex flex-col h-[calc(100dvh-3.5rem)] -m-4 lg:-m-8 overflow-hidden">
         {/* Dimmed ambient background */}
-        <div className="absolute inset-0 -z-10 opacity-25">
+        <div className="absolute inset-0 -z-10 opacity-25 pointer-events-none">
           <AIBackground />
         </div>
 
@@ -405,138 +404,143 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
         {/* ---------- Main content ---------- */}
         <div className="flex-1 flex overflow-hidden">
           {/* Question area */}
-          <div ref={questionScrollRef} className="flex-1 overflow-auto p-4 lg:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentQuestionIndex}
-                initial={reduce ? { opacity: 0 } : { opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }}
-                transition={{ duration: reduce ? 0.1 : 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="max-w-3xl mx-auto"
-              >
-                <Card variant="glass" className="p-6 lg:p-10 border-0 shadow-soft">
-                  {/* Meta badges */}
-                  <div className="flex flex-wrap items-center gap-2 mb-6">
-                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary">
-                      Question {currentQuestionIndex + 1} of {exam.questions.length}
-                    </span>
-                    <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-muted uppercase tracking-wider text-muted-foreground">
-                      {question.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}
-                    </span>
-                    <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
-                      {question.marks} mark{question.marks > 1 ? 's' : ''}
-                    </span>
-                  </div>
-
-                  {/* Prompt */}
-                  <h2 className="text-xl lg:text-2xl font-medium leading-relaxed mb-8 text-foreground">
-                    {question.prompt}
-                  </h2>
-
-                  {/* MCQ options */}
-                  {question.type === 'mcq' && question.options && (
-                    <RadioGroup
-                      value={answers[question.id] || ''}
-                      onValueChange={(value) => setAnswer(question.id, value)}
-                      className="space-y-3"
-                    >
-                      {question.options.map((option, index) => {
-                        const isSelected = answers[question.id] === option;
-                        return (
-                          <motion.div
-                            key={`${question.id}-${index}`}
-                            whileTap={reduce ? undefined : { scale: 0.98 }}
-                            className={cn(
-                              'group relative flex items-start gap-4 p-4 lg:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200',
-                              isSelected
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border/40 bg-card/20 hover:border-primary/25 hover:bg-muted/15 hover:-translate-y-0.5 hover:shadow-soft'
-                            )}
-                            onClick={() => setAnswer(question.id, option)}
-                          >
-                            <RadioGroupItem
-                              value={option}
-                              id={`opt-${question.id}-${index}`}
-                              className="mt-0.5 shrink-0"
-                            />
-                            <Label
-                              htmlFor={`opt-${question.id}-${index}`}
-                              className="flex-1 cursor-pointer text-sm lg:text-base leading-relaxed"
-                            >
-                              <span
-                                className={cn(
-                                  'font-semibold mr-2',
-                                  isSelected ? 'text-primary' : 'text-muted-foreground'
-                                )}
-                              >
-                                {String.fromCharCode(65 + index)}.
-                              </span>
-                              {option}
-                            </Label>
-                            <AnimatePresence>
-                              {isSelected && (
-                                <motion.div
-                                  initial={reduce ? undefined : { scale: 0, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  exit={reduce ? undefined : { scale: 0, opacity: 0 }}
-                                  transition={{ duration: 0.15 }}
-                                  className="mt-0.5 shrink-0"
-                                >
-                                  <Check className="w-4 h-4 text-primary" />
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </motion.div>
-                        );
-                      })}
-                    </RadioGroup>
-                  )}
-
-                  {/* Short answer */}
-                  {question.type === 'short_answer' && (
-                    <Textarea
-                      value={answers[question.id] || ''}
-                      onChange={(e) => setAnswer(question.id, e.target.value)}
-                      placeholder="Type your answer here..."
-                      className="min-h-[200px] text-base leading-relaxed bg-card/30 border-border/50 focus-visible:border-primary focus-visible:ring-primary/20 transition-all resize-y"
-                    />
-                  )}
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Prev / Next */}
-            <div className="max-w-3xl mx-auto mt-6 lg:mt-8 flex justify-between items-center">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={prevQuestion}
-                disabled={currentQuestionIndex === 0}
-                className="gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Previous</span>
-              </Button>
-
-              {isLastQuestion ? (
-                <Button
-                  onClick={() => setShowSubmitDialog(true)}
-                  variant="gradient"
-                  size="lg"
-                  className="gap-2"
-                  disabled={isSubmitting}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Scrollable question card */}
+            <div ref={questionScrollRef} className="flex-1 overflow-auto p-4 lg:p-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentQuestionIndex}
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }}
+                  transition={{ duration: reduce ? 0.1 : 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  className="max-w-3xl mx-auto"
                 >
-                  <span className="hidden sm:inline">Submit Exam</span>
-                  <span className="sm:hidden">Submit</span>
-                  <Send className="w-4 h-4" />
+                  <Card variant="glass" className="p-6 lg:p-10 border-0 shadow-soft">
+                    {/* Meta badges */}
+                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary">
+                        Question {currentQuestionIndex + 1} of {exam.questions.length}
+                      </span>
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-muted uppercase tracking-wider text-muted-foreground">
+                        {question.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}
+                      </span>
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+                        {question.marks} mark{question.marks > 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    {/* Prompt */}
+                    <h2 className="text-xl lg:text-2xl font-medium leading-relaxed mb-8 text-foreground">
+                      {question.prompt}
+                    </h2>
+
+                    {/* MCQ options */}
+                    {question.type === 'mcq' && question.options && (
+                      <RadioGroup
+                        value={answers[question.id] || ''}
+                        onValueChange={(value) => setAnswer(question.id, value)}
+                        className="space-y-3"
+                      >
+                        {question.options.map((option, index) => {
+                          const isSelected = answers[question.id] === option;
+                          return (
+                            <motion.div
+                              key={`${question.id}-${index}`}
+                              whileTap={reduce ? undefined : { scale: 0.98 }}
+                              className={cn(
+                                'group relative flex items-start gap-4 p-4 lg:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200',
+                                isSelected
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-border/40 bg-card/20 hover:border-primary/25 hover:bg-muted/15 hover:-translate-y-0.5 hover:shadow-soft'
+                              )}
+                              onClick={() => setAnswer(question.id, option)}
+                            >
+                              <RadioGroupItem
+                                value={option}
+                                id={`opt-${question.id}-${index}`}
+                                className="mt-0.5 shrink-0"
+                              />
+                              <Label
+                                htmlFor={`opt-${question.id}-${index}`}
+                                className="flex-1 cursor-pointer text-sm lg:text-base leading-relaxed"
+                              >
+                                <span
+                                  className={cn(
+                                    'font-semibold mr-2',
+                                    isSelected ? 'text-primary' : 'text-muted-foreground'
+                                  )}
+                                >
+                                  {String.fromCharCode(65 + index)}.
+                                </span>
+                                {stripOptionPrefix(option)}
+                              </Label>
+                              <AnimatePresence>
+                                {isSelected && (
+                                  <motion.div
+                                    initial={reduce ? undefined : { scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={reduce ? undefined : { scale: 0, opacity: 0 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="mt-0.5 shrink-0"
+                                  >
+                                    <Check className="w-4 h-4 text-primary" />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </motion.div>
+                          );
+                        })}
+                      </RadioGroup>
+                    )}
+
+                    {/* Short answer */}
+                    {question.type === 'short_answer' && (
+                      <Textarea
+                        value={answers[question.id] || ''}
+                        onChange={(e) => setAnswer(question.id, e.target.value)}
+                        placeholder="Type your answer here..."
+                        className="min-h-[120px] text-base leading-relaxed bg-card/30 border-border/50 focus-visible:border-primary focus-visible:ring-primary/20 transition-all resize-y"
+                      />
+                    )}
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Fixed Prev / Next button bar */}
+            <div className="shrink-0 border-t bg-background/80 backdrop-blur-md px-4 lg:px-8 py-4">
+              <div className="max-w-3xl mx-auto flex justify-between items-center">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={prevQuestion}
+                  disabled={currentQuestionIndex === 0}
+                  className="gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Previous</span>
                 </Button>
-              ) : (
-                <Button onClick={nextQuestion} size="lg" className="gap-2">
-                  <span className="hidden sm:inline">Next</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              )}
+
+                {isLastQuestion ? (
+                  <Button
+                    onClick={() => setShowSubmitDialog(true)}
+                    variant="gradient"
+                    size="lg"
+                    className="gap-2"
+                    disabled={isSubmitting}
+                  >
+                    <span className="hidden sm:inline">Submit Exam</span>
+                    <span className="sm:hidden">Submit</span>
+                    <Send className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={nextQuestion} size="lg" className="gap-2">
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 

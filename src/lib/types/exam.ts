@@ -103,6 +103,8 @@ export interface ExamSubmitResponse {
   score_percentage: number;
   mcq_correct: number;
   mcq_total: number;
+  short_answer_total_marks: number;
+  short_answer_awarded_marks: number;
   weak_topics: WeakTopic[];
   weak_subtopics: WeakSubtopic[];
   readiness_score: number;
@@ -129,6 +131,8 @@ export interface AttemptResponse {
   score_percentage: number;
   mcq_correct: number;
   mcq_total: number;
+  short_answer_total_marks: number;
+  short_answer_awarded_marks: number;
   readiness_score: number;
   weak_topics: WeakTopic[];
   weak_subtopics: WeakSubtopic[];
