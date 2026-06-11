@@ -156,6 +156,12 @@ function TopicAutocomplete({
           onFocus={() => {
             if (!disabled && chapter) setOpen(true);
           }}
+          onKeyDown={(e) => {
+            // Prevent form submission on Enter if no topic is selected
+            if (e.key === 'Enter' && !value) {
+              e.preventDefault();
+            }
+          }}
           disabled={disabled}
           className="pl-9 pr-9 glass bg-transparent border-foreground/10 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary/30 transition-all"
         />
@@ -469,6 +475,12 @@ function ExamConfigForm() {
       return;
     }
 
+    // Hard guard — block submission if chapter or topic are missing
+    if (!data.chapter || !data.topic) {
+      toast.error('Please select a chapter and topic before generating the exam');
+      return;
+    }
+
     setIsLoading(true);
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -548,7 +560,16 @@ function ExamConfigForm() {
         )}
 
         {!isLoading && (
-          <form onSubmit={handleSubmit(onSubmit)} className="flex-1 min-h-0">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex-1 min-h-0" noValidate>
+            {/* Validation banner */}
+            {(!chapter || !topic) && (
+              <Reveal>
+                <div className="mb-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-sm text-destructive">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Please select a <strong>chapter</strong> and <strong>topic</strong> to generate your exam.</span>
+                </div>
+              </Reveal>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 items-stretch h-full">
               {/* ═══════ LEFT COLUMN: Configuration ═══════ */}
               <div className="flex flex-col gap-4 min-h-0 overflow-y-auto lg:overflow-visible pr-1">

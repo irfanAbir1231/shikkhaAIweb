@@ -487,105 +487,135 @@
 }
 
 /* ============================================================
-   DRIVER.JS TOUR STYLES
+   DRIVER.JS TOUR STYLES — Dark Mode Native
    ============================================================ */
-.shikkhaai-tour .driver-popover {
-  background: color-mix(in oklch, var(--card) 95%, transparent);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid color-mix(in oklch, var(--primary) 25%, transparent);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 20px 60px -12px color-mix(in oklch, var(--foreground) 25%, transparent),
-    0 0 0 1px color-mix(in oklch, var(--primary) 15%, transparent);
-  padding: 1.25rem;
-  max-width: 380px;
+
+/* Base popover — override driver.js defaults with high specificity */
+div.driver-popover.shikkhaai-tour {
+  background: color-mix(in oklch, var(--card) 95%, transparent) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+  border: 1px solid color-mix(in oklch, var(--primary) 30%, transparent) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow:
+    0 24px 64px -12px color-mix(in oklch, var(--foreground) 30%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--primary) 20%, transparent),
+    0 0 40px -8px color-mix(in oklch, var(--primary) 25%, transparent) !important;
+  padding: 1.5rem !important;
+  max-width: 400px !important;
+  color: var(--foreground) !important;
 }
 
-.shikkhaai-tour .driver-popover-title {
+/* Title */
+div.driver-popover.shikkhaai-tour .driver-popover-title {
   font-family: var(--font-heading);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: var(--foreground);
+  color: var(--foreground) !important;
   margin-bottom: 0.5rem;
   line-height: 1.3;
 }
 
-.shikkhaai-tour .driver-popover-description {
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--muted-foreground);
+/* Description */
+div.driver-popover.shikkhaai-tour .driver-popover-description {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--muted-foreground) !important;
   margin-bottom: 1rem;
 }
 
-.shikkhaai-tour .driver-popover-footer {
+/* Footer */
+div.driver-popover.shikkhaai-tour .driver-popover-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.75rem;
+  margin-top: 1rem;
+  border-top: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+  padding-top: 0.75rem;
 }
 
-.shikkhaai-tour .driver-popover-progress-text {
+/* Progress text */
+div.driver-popover.shikkhaai-tour .driver-popover-progress-text {
   font-size: 0.75rem;
-  color: var(--muted-foreground);
+  color: var(--muted-foreground) !important;
   font-weight: 500;
 }
 
-.shikkhaai-tour .driver-popover-navigation-btns {
+/* Navigation buttons container */
+div.driver-popover.shikkhaai-tour .driver-popover-navigation-btns {
   display: flex;
   gap: 0.5rem;
 }
 
-.shikkhaai-tour .driver-popover-prev-btn,
-.shikkhaai-tour .driver-popover-next-btn,
-.shikkhaai-tour .driver-popover-close-btn {
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  border: none;
+/* All buttons */
+div.driver-popover.shikkhaai-tour .driver-popover-prev-btn,
+div.driver-popover.shikkhaai-tour .driver-popover-next-btn,
+div.driver-popover.shikkhaai-tour .driver-popover-close-btn {
+  padding: 0.5rem 1rem !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
   cursor: pointer;
+  text-shadow: none !important;
 }
 
-.shikkhaai-tour .driver-popover-next-btn {
-  background: linear-gradient(110deg, var(--brand-from), var(--brand-via));
-  color: white;
+/* Next button — brand gradient */
+div.driver-popover.shikkhaai-tour .driver-popover-next-btn {
+  background: linear-gradient(110deg, var(--brand-from), var(--brand-via)) !important;
+  color: white !important;
+  box-shadow: 0 4px 16px -4px color-mix(in oklch, var(--primary) 50%, transparent) !important;
 }
-.shikkhaai-tour .driver-popover-next-btn:hover {
-  opacity: 0.9;
+div.driver-popover.shikkhaai-tour .driver-popover-next-btn:hover {
+  opacity: 0.92;
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px -4px color-mix(in oklch, var(--primary) 60%, transparent) !important;
 }
 
-.shikkhaai-tour .driver-popover-prev-btn {
-  background: color-mix(in oklch, var(--muted) 80%, transparent);
-  color: var(--foreground);
+/* Prev button — muted */
+div.driver-popover.shikkhaai-tour .driver-popover-prev-btn {
+  background: color-mix(in oklch, var(--muted) 80%, transparent) !important;
+  color: var(--foreground) !important;
 }
-.shikkhaai-tour .driver-popover-prev-btn:hover {
-  background: var(--muted);
+div.driver-popover.shikkhaai-tour .driver-popover-prev-btn:hover {
+  background: var(--muted) !important;
 }
 
-.shikkhaai-tour .driver-popover-close-btn {
+/* Close button */
+div.driver-popover.shikkhaai-tour .driver-popover-close-btn {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  padding: 0.25rem;
-  background: transparent;
-  color: var(--muted-foreground);
+  padding: 0.25rem !important;
+  background: transparent !important;
+  color: var(--muted-foreground) !important;
   width: 28px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm) !important;
 }
-.shikkhaai-tour .driver-popover-close-btn:hover {
-  background: color-mix(in oklch, var(--destructive) 15%, transparent);
-  color: var(--destructive);
+div.driver-popover.shikkhaai-tour .driver-popover-close-btn:hover {
+  background: color-mix(in oklch, var(--destructive) 15%, transparent) !important;
+  color: var(--destructive) !important;
 }
 
-/* Highlighted stage */
-.shikkhaai-tour .driver-popover-arrow {
-  border-top-color: color-mix(in oklch, var(--primary) 25%, transparent);
+/* Arrow — matches the border glow */
+div.driver-popover.shikkhaai-tour .driver-popover-arrow {
+  border-top-color: color-mix(in oklch, var(--primary) 30%, transparent) !important;
+}
+
+/* Stage highlight (the glowing box around the element) */
+div#driver-js-overlay .driver-active-element {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 60%, transparent),
+    0 0 30px -4px color-mix(in oklch, var(--primary) 40%, transparent) !important;
+}
+
+/* Overlay — slightly tinted instead of pure black */
+div#driver-js-overlay {
+  background: color-mix(in oklch, var(--background) 70%, transparent) !important;
 }
 
 /* ============================================================
