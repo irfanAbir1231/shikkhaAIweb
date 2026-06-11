@@ -151,7 +151,7 @@ export default function DashboardPage() {
     <div className="space-y-8 py-2">
       {/* Greeting + AI Encouragement */}
       <Reveal>
-        <div className="space-y-4">
+        <div className="space-y-4" data-tour="dashboard-welcome">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight">
               Hello, <GradientText animated>{firstName}</GradientText>! 👋
@@ -167,7 +167,7 @@ export default function DashboardPage() {
       </Reveal>
 
       {/* 3. Quick Actions — enhanced with color coding */}
-      <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-4" data-tour="dashboard-quick-actions">
         {quickActions.map((action) => {
           const Icon = action.icon;
           return (
@@ -194,7 +194,7 @@ export default function DashboardPage() {
       </Stagger>
 
       {/* 4. Stat Row */}
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4" data-tour="dashboard-stats">
         <StaggerItem>
           <StatCard
             label="Mastery"
@@ -298,7 +298,7 @@ export default function DashboardPage() {
         </Reveal>
 
         <Reveal>
-          <Card variant="glass">
+          <Card variant="glass" data-tour="dashboard-focus">
             <CardHeader>
               <CardTitle>Focus Areas</CardTitle>
               <CardDescription>
@@ -473,7 +473,7 @@ export default function DashboardPage() {
 
       {/* 8. Recent Exams */}
       <Reveal>
-        <Card variant="glass">
+        <Card variant="glass" data-tour="dashboard-recent">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Exams</CardTitle>

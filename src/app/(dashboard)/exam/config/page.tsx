@@ -327,6 +327,7 @@ function ExamSummaryPanel({
                 size="lg"
                 className="w-full transition-all"
                 disabled={isLoading || !ready || (isPracticeWeak && subtopicCount === 0)}
+                data-tour="exam-generate"
               >
                 {isLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -562,7 +563,7 @@ function ExamConfigForm() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {/* Subject cards */}
-                      <div className="space-y-2">
+                      <div className="space-y-2" data-tour="exam-subject">
                         <Label>Subject</Label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           {SUBJECTS.slice(0, 6).map((s) => {
@@ -615,10 +616,10 @@ function ExamConfigForm() {
                       </div>
 
                       {/* Hidden class_level */}
-                      <input type="hidden" {...register('class_level')} />
+                      <input type="hidden" {...register('class_level')} data-tour="exam-class" />
 
                       {/* Chapter select */}
-                      <div className="space-y-2">
+                      <div className="space-y-2" data-tour="exam-chapter">
                         <Label htmlFor="chapter">Chapter</Label>
                         <Controller
                           name="chapter"
@@ -683,7 +684,7 @@ function ExamConfigForm() {
                       </div>
 
                       {/* Topic autocomplete */}
-                      <div className="space-y-2">
+                      <div className="space-y-2" data-tour="exam-topic">
                         <Label htmlFor="topic">Topic</Label>
                         <Controller
                           name="topic"
@@ -711,7 +712,7 @@ function ExamConfigForm() {
 
                 {/* ── Exam Settings ── */}
                 <Reveal delay={0.1}>
-                  <Card variant="glass" size="sm">
+                  <Card variant="glass" size="sm" data-tour="exam-settings">
                     <CardHeader className="pb-2">
                       <CardTitle className="flex items-center gap-2 text-sm">
                         <HelpCircle className="w-4 h-4 text-primary" />

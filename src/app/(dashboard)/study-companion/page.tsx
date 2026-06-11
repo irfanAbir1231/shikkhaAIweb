@@ -302,6 +302,7 @@ export default function StudyCompanionPage() {
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto min-h-0 p-4 lg:p-8 scroll-smooth"
+        data-tour="companion-messages"
       >
         <AnimatePresence mode="wait">
           {messages.length === 0 ? (
@@ -460,7 +461,7 @@ export default function StudyCompanionPage() {
       </div>
 
       {/* Input */}
-      <div className="border-t glass p-3 sm:p-4 lg:px-8 shrink-0">
+      <div className="border-t glass p-3 sm:p-4 lg:px-8 shrink-0" data-tour="companion-input">
         <form
           onSubmit={(e) => {
             e.preventDefault();

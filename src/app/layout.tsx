@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AIBackground } from "@/components/background/ai-background";
+import { TourProvider } from "@/components/tour/TourProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -55,13 +56,15 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <ReactQueryProvider>
-              <TooltipProvider>
-                <AIBackground />
-                {children}
-                <Toaster position="top-right" />
-              </TooltipProvider>
-            </ReactQueryProvider>
+            <TourProvider>
+              <ReactQueryProvider>
+                <TooltipProvider>
+                  <AIBackground />
+                  {children}
+                  <Toaster position="top-right" />
+                </TooltipProvider>
+              </ReactQueryProvider>
+            </TourProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

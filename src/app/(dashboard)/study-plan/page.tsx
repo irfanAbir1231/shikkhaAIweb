@@ -276,6 +276,7 @@ export default function StudyPlanPage() {
       )}
 
       {/* Plans Grid */}
+      <div data-tour="study-plan">
       {plans.length === 0 ? (
         <Card variant="glass">
           <CardContent className="p-12 text-center">
@@ -357,6 +358,7 @@ export default function StudyPlanPage() {
           ))}
         </Stagger>
       )}
+      </div>
 
       {/* Generate Dialog */}
       <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>

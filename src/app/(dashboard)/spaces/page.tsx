@@ -26,11 +26,15 @@ export default function SpacesPage() {
               Organize your study materials and chat with AI about your documents
             </p>
           </div>
-          <CreateSpaceButton />
+          <div data-tour="spaces-upload">
+            <CreateSpaceButton />
+          </div>
         </div>
       </Reveal>
 
-      <SpacesGrid spaces={spaces} isLoading={isLoading} />
+      <div data-tour="spaces-list">
+        <SpacesGrid spaces={spaces} isLoading={isLoading} />
+      </div>
     </div>
   );
 }

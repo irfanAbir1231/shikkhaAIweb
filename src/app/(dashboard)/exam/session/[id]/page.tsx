@@ -315,7 +315,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
           </div>
 
           {/* Right — Timer + Integrity + Submit */}
-          <div className="flex items-center gap-1.5 md:gap-2 lg:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 md:gap-2 lg:gap-2.5 shrink-0" data-tour="session-timer">
             {/* Desktop timer ring */}
             <div className="hidden sm:flex items-center gap-1">
               <TimerRing value={timerPercent} isLowTime={isLowTime} size={28} />
@@ -349,6 +349,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
               onClick={() => setShowSubmitDialog(true)}
               disabled={isSubmitting}
               className="h-7 px-2 md:px-2.5"
+              data-tour="session-submit"
             >
               <Send className="w-3.5 h-3.5 md:mr-1" />
               <span className="hidden md:inline text-xs">Submit</span>
@@ -358,7 +359,7 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
         {/* ---------- Tab-switch warning ---------- */}
         {tabSwitchCount > 0 && (
-          <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 text-xs shrink-0">
+          <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 text-xs shrink-0" data-tour="session-tab-warning">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             <span>
               Tab switches: {tabSwitchCount}/3 {tabSwitchCount >= 2 && '— auto-submit on next offense'}

@@ -7,6 +7,7 @@ import { motion, useReducedMotion, useMotionValue, animate } from 'framer-motion
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useExamStore } from '@/lib/stores/exam-store';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -229,6 +230,7 @@ export default function ExamResultPage() {
   const [savedExam, setSavedExam] = useState(false);
   const saveNote = useSaveNote();
   const reduce = useReducedMotion();
+
 
   useEffect(() => {
     const alreadyLoaded = lastResult && lastResult.exam_id === examId;
@@ -570,7 +572,7 @@ export default function ExamResultPage() {
 
           {/* Weaknesses */}
           <Reveal delay={0.24} direction="right">
-            <Card variant="glass" className="h-full">
+            <Card variant="glass" className="h-full" data-tour="result-weak">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-destructive">
                   <TrendingDown className="w-5 h-5" />
@@ -622,7 +624,7 @@ export default function ExamResultPage() {
 
                 {/* Practice Weak Areas CTA */}
                 {exam && result.weak_subtopics && result.weak_subtopics.length > 0 && (
-                  <div className="pt-2">
+                  <div className="pt-2" data-tour="result-practice">
                     <Link
                       href={`/exam/config?practice_weak=1&subject=${encodeURIComponent(exam.subject)}&class_level=${user?.grade_level || '8'}&topic=${encodeURIComponent(exam.topic)}&subtopic_ids=${result.weak_subtopics.map((ws) => ws.subtopic_id).join(',')}`}
                     >
@@ -699,7 +701,7 @@ export default function ExamResultPage() {
             ============================================================= */}
         {result.generated_notes && result.generated_notes.length > 0 && (
           <Reveal delay={0.35}>
-            <Card variant="gradient">
+            <Card variant="gradient" data-tour="result-notes">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-primary" />

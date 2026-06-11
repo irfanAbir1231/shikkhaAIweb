@@ -20,7 +20,9 @@ import {
   Palette,
   Languages,
   Check,
+  RotateCcw,
 } from 'lucide-react';
+import { resetTour } from '@/lib/tour';
 import { Badge } from '@/components/ui/badge';
 import { GRADE_LEVELS } from '@/lib/utils/constants';
 import {
@@ -316,6 +318,36 @@ export default function SettingsPage() {
                   );
                 })}
               </div>
+            </CardContent>
+          </Card>
+        </StaggerItem>
+
+        {/* App Tour */}
+        <StaggerItem>
+          <Card variant="glass">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
+                  <RotateCcw className="w-4 h-4" />
+                </div>
+                App Tour
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                New here? Take the guided tour to learn how ShikkhaAI works — from taking exams to using the study companion and spaces.
+              </p>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  resetTour();
+                  window.location.href = '/';
+                }}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Restart Tour
+              </Button>
             </CardContent>
           </Card>
         </StaggerItem>

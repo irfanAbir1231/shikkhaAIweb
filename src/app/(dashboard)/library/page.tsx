@@ -120,7 +120,7 @@ export default function LibraryPage() {
         Your library is your personal knowledge base. Notes from weak-topic practice and exam reviews are auto-saved here. Use the search to quickly find what you need.
       </AIInsightCard>
 
-      <Tabs defaultValue="notes">
+      <Tabs defaultValue="notes" data-tour="library-tabs">
         <TabsList className="glass">
           <TabsTrigger value="notes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Notes
@@ -130,7 +130,7 @@ export default function LibraryPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="notes" className="space-y-4 mt-4">
+        <TabsContent value="notes" className="space-y-4 mt-4" data-tour="library-notes">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -216,7 +216,7 @@ export default function LibraryPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="quizzes" className="space-y-4 mt-4">
+        <TabsContent value="quizzes" className="space-y-4 mt-4" data-tour="library-exams">
           <SavedQuizzesTab />
         </TabsContent>
       </Tabs>
