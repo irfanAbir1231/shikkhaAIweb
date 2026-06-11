@@ -532,7 +532,7 @@ function ExamConfigForm() {
     chapters?.find((ch: { id: string; name: string }) => ch.id === chapter)?.name || '';
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col relative">
+    <div className="h-full overflow-hidden flex flex-col relative">
       {/* Ambient background */}
       <div className="absolute inset-0 -z-10 opacity-30">
         <AIBackground />
@@ -572,10 +572,10 @@ function ExamConfigForm() {
             )}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 items-stretch h-full">
               {/* ═══════ LEFT COLUMN: Configuration ═══════ */}
-              <div className="flex flex-col gap-4 min-h-0 overflow-y-auto lg:overflow-visible pr-1">
+              <div className="flex flex-col gap-4 min-h-0 overflow-y-auto pr-1 pb-32">
                 {/* ── Subject & Topic ── */}
                 <Reveal delay={0.05}>
-                  <Card variant="glass" className="overflow-visible" size="sm">
+                  <Card variant="glass" className="overflow-visible" size="sm" data-tour="exam-subject">
                     <CardHeader className="pb-2">
                       <CardTitle className="flex items-center gap-2 text-sm">
                         <Brain className="w-4 h-4 text-primary" />
@@ -640,7 +640,7 @@ function ExamConfigForm() {
                       <input type="hidden" {...register('class_level')} data-tour="exam-class" />
 
                       {/* Chapter select */}
-                      <div className="space-y-2" data-tour="exam-chapter">
+                      <div className="space-y-2">
                         <Label htmlFor="chapter">Chapter</Label>
                         <Controller
                           name="chapter"
@@ -705,7 +705,7 @@ function ExamConfigForm() {
                       </div>
 
                       {/* Topic autocomplete */}
-                      <div className="space-y-2" data-tour="exam-topic">
+                      <div className="space-y-2">
                         <Label htmlFor="topic">Topic</Label>
                         <Controller
                           name="topic"

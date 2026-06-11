@@ -134,30 +134,10 @@ export const tourSteps: Record<TourPhase, TourStep[]> = {
     {
       element: '[data-tour="exam-subject"]',
       popover: {
-        title: 'Select a Subject',
+        title: 'Select Subject, Chapter & Topic',
         description:
-          'Pick the subject you want to practice. Science is fully loaded with curriculum-aligned content.',
-        side: 'bottom',
-        align: 'start',
-      },
-    },
-    {
-      element: '[data-tour="exam-chapter"]',
-      popover: {
-        title: 'Choose a Chapter',
-        description:
-          'Select a chapter from your textbook. The questions will be generated based on the actual curriculum content.',
-        side: 'bottom',
-        align: 'start',
-      },
-    },
-    {
-      element: '[data-tour="exam-topic"]',
-      popover: {
-        title: 'Pick a Topic',
-        description:
-          'Type or search for a specific topic. This helps the AI generate highly relevant questions from the curriculum.',
-        side: 'bottom',
+          'Pick a subject, then choose a chapter from your textbook and a specific topic. The AI will generate questions based on the actual curriculum content.',
+        side: 'right',
         align: 'start',
       },
     },
