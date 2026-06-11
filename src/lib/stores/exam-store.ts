@@ -11,8 +11,10 @@ interface ExamState {
   tabSwitchCount: number;
   isTimerPaused: boolean;
   lastResult: ExamSubmitResponse | null;
+  isDemo: boolean;
+  hasHydrated: boolean;
 
-  setExam: (exam: ExamResponse, customTimeLimitSeconds?: number) => void;
+  setExam: (exam: ExamResponse, customTimeLimitSeconds?: number, isDemo?: boolean) => void;
   setAnswer: (questionId: string, answer: string) => void;
   nextQuestion: () => void;
   prevQuestion: () => void;
@@ -22,6 +24,7 @@ interface ExamState {
   setTimerPaused: (value: boolean) => void;
   submitExam: () => void;
   setLastResult: (result: ExamSubmitResponse | null) => void;
+  setHasHydrated: (value: boolean) => void;
   reset: () => void;
 }
 
@@ -36,8 +39,10 @@ export const useExamStore = create<ExamState>()(
       tabSwitchCount: 0,
       isTimerPaused: false,
       lastResult: null,
+      isDemo: false,
+      hasHydrated: false,
 
-      setExam: (exam, customTimeLimitSeconds?) =>
+      setExam: (exam, customTimeLimitSeconds?, isDemo = false) =>
         set({
           exam,
           answers: {},
@@ -47,6 +52,7 @@ export const useExamStore = create<ExamState>()(
           tabSwitchCount: 0,
           isTimerPaused: false,
           lastResult: null,
+          isDemo,
         }),
 
       setAnswer: (questionId, answer) =>
@@ -91,6 +97,8 @@ export const useExamStore = create<ExamState>()(
 
       setLastResult: (result) => set({ lastResult: result }),
 
+      setHasHydrated: (value) => set({ hasHydrated: value }),
+
       reset: () =>
         set({
           exam: null,
@@ -101,6 +109,7 @@ export const useExamStore = create<ExamState>()(
           tabSwitchCount: 0,
           isTimerPaused: false,
           lastResult: null,
+          isDemo: false,
         }),
     }),
     {
@@ -108,7 +117,11 @@ export const useExamStore = create<ExamState>()(
       partialize: (state) => ({
         exam: state.exam,
         lastResult: state.lastResult,
+        isDemo: state.isDemo,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

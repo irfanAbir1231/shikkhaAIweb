@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useExamStore } from '@/lib/stores/exam-store';
 import { useFocusGardenStore } from '@/lib/stores/focus-garden-store';
+import { getDemoResultForAnswers } from '@/lib/mock-exam';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -153,6 +154,8 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
     isSubmitted,
     tabSwitchCount,
     isTimerPaused,
+    isDemo,
+    hasHydrated,
     setAnswer,
     nextQuestion,
     prevQuestion,
@@ -169,13 +172,24 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   /* Core submission — no React setState, safe to call from effects */
   const runSubmission = async () => {
-    if (!exam || !user || isSubmitted) return;
+    if (!exam || (!user && !isDemo) || isSubmitted) return;
     submitExam();
+
+    // Demo mode: skip backend and generate mock results
+    if (isDemo) {
+      const result = getDemoResultForAnswers(answers);
+      setLastResult(result);
+      toast.success(`Demo exam submitted! Score: ${result.score_percentage.toFixed(1)}%`);
+      router.push('/exam/result/demo');
+      return;
+    }
 
     const answersArray = Object.entries(answers).map(([question_id, answer]) => ({
       question_id,
       answer,
     }));
+
+    if (!user) return;
 
     try {
       const res = await fetch('/api/proxy/exam/submit', {
@@ -239,10 +253,10 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
   /* --------------------------- Effects ---------------------------- */
 
   useEffect(() => {
-    if (!exam) {
+    if (hasHydrated && !exam) {
       router.push('/exam/config');
     }
-  }, [exam, router]);
+  }, [exam, hasHydrated, router]);
 
   useEffect(() => {
     if (!exam || isSubmitted) return;
@@ -262,7 +276,13 @@ export default function ExamSessionPage({ params }: { params: { id: string } }) 
 
   /* --------------------------- Render ----------------------------- */
 
-  if (!exam) return null;
+  if (!hasHydrated || !exam) {
+    return (
+      <div className="relative flex items-center justify-center min-h-[60vh]">
+        <AILoader label="Loading exam session…" />
+      </div>
+    );
+  }
 
   const question = exam.questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === exam.questions.length - 1;

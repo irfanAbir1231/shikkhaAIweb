@@ -13,6 +13,8 @@ import {
   tourSteps,
   type TourPhase,
 } from '@/lib/tour';
+import { useExamStore } from '@/lib/stores/exam-store';
+import { demoExam } from '@/lib/mock-exam';
 
 const phaseToPath: Record<TourPhase, string> = {
   dashboard: '/',
@@ -29,6 +31,7 @@ const phaseToPath: Record<TourPhase, string> = {
 export function useAppTour() {
   const router = useRouter();
   const pathname = usePathname();
+  const { setExam, reset: resetExam } = useExamStore();
   const driverRef = useRef<Driver | null>(null);
 
   const cleanup = useCallback(() => {
@@ -46,6 +49,7 @@ export function useAppTour() {
       if (!steps || steps.length === 0) return;
 
       const isLastPhase = phase === 'spaces';
+      const isExamConfigPhase = phase === 'exam-config';
 
       const d = driver({
         showProgress: true,
@@ -56,7 +60,11 @@ export function useAppTour() {
         popoverClass: 'shikkhaai-tour',
         nextBtnText: 'Next →',
         prevBtnText: '← Back',
-        doneBtnText: isLastPhase ? 'Finish Tour 🎉' : 'Next Feature →',
+        doneBtnText: isLastPhase
+          ? 'Finish Tour 🎉'
+          : isExamConfigPhase
+            ? 'Start Demo Exam →'
+            : 'Next Feature →',
         steps: steps.map((s) => ({
           element: s.element,
           popover: {
@@ -83,6 +91,13 @@ export function useAppTour() {
             const np = nextPhase[phase];
             if (np === 'completed') {
               markTourCompleted();
+              if (driverRef.current) driverRef.current.destroy();
+            } else if (phase === 'exam-config') {
+              // Start demo exam for the tour
+              resetExam();
+              setExam(demoExam, 5 * 60, true); // 5 min demo exam
+              advanceTourPhase(np);
+              router.push('/exam/session/demo');
               if (driverRef.current) driverRef.current.destroy();
             } else {
               advanceTourPhase(np);

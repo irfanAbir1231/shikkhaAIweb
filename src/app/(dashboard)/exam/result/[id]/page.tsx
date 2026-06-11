@@ -220,12 +220,13 @@ export default function ExamResultPage() {
   const params = useParams();
   const examId = parseInt(params?.id as string, 10);
   const { user } = useAuthStore();
-  const { exam, lastResult, answers } = useExamStore();
+  const { exam, lastResult, answers, isDemo, hasHydrated } = useExamStore();
+  const isDemoPage = params?.id === 'demo' || isDemo;
   const [result, setResult] = useState<ExamSubmitResponse | null>(() =>
-    lastResult && lastResult.exam_id === examId ? lastResult : null
+    lastResult && (lastResult.exam_id === examId || isDemoPage) ? lastResult : null
   );
   const [isLoading, setIsLoading] = useState(() =>
-    !(lastResult && lastResult.exam_id === examId)
+    !(lastResult && (lastResult.exam_id === examId || isDemoPage))
   );
   const [savedExam, setSavedExam] = useState(false);
   const saveNote = useSaveNote();
@@ -233,6 +234,18 @@ export default function ExamResultPage() {
 
 
   useEffect(() => {
+    // Wait for store hydration before deciding what to render
+    if (!hasHydrated) return;
+
+    // Demo mode: use the stored mock result directly
+    if (isDemoPage) {
+      if (lastResult) {
+        setResult(lastResult);
+      }
+      setIsLoading(false);
+      return;
+    }
+
     const alreadyLoaded = lastResult && lastResult.exam_id === examId;
     if (alreadyLoaded) return;
 
@@ -278,9 +291,13 @@ export default function ExamResultPage() {
     }
 
     return () => { cancelled = true; };
-  }, [lastResult, examId, user]);
+  }, [lastResult, examId, user, isDemoPage, hasHydrated]);
 
   const handleSaveNote = (note: GeneratedNote) => {
+    if (isDemoPage) {
+      toast.success('Demo note saved to library!');
+      return;
+    }
     saveNote.mutate(
       { noteId: note.id, bookmarked: false },
       { onSuccess: () => toast.success('Note saved to library!'), onError: () => toast.error('Failed to save note') }
@@ -288,6 +305,10 @@ export default function ExamResultPage() {
   };
 
   const handleBookmarkNote = (note: GeneratedNote) => {
+    if (isDemoPage) {
+      toast.success('Demo note bookmarked!');
+      return;
+    }
     saveNote.mutate(
       { noteId: note.id, bookmarked: true },
       { onSuccess: () => toast.success('Note bookmarked!'), onError: () => toast.error('Failed to bookmark note') }
@@ -295,6 +316,11 @@ export default function ExamResultPage() {
   };
 
   const handleSaveExam = async () => {
+    if (isDemoPage) {
+      setSavedExam(true);
+      toast.success('Demo exam saved to library!');
+      return;
+    }
     if (!user) return;
     try {
       const res = await fetch(`/api/proxy/exam/${examId}/save`, {

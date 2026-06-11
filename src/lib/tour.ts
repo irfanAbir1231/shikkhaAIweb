@@ -122,21 +122,11 @@ export const tourSteps: Record<TourPhase, TourStep[]> = {
 
   'exam-config': [
     {
-      element: '[data-tour="exam-class"]',
-      popover: {
-        title: 'Class 8 — Currently Available',
-        description:
-          'ShikkhaAI currently covers Class 8 Science curriculum (Bangladesh NCTB). More classes and subjects are coming soon!',
-        side: 'bottom',
-        align: 'start',
-      },
-    },
-    {
       element: '[data-tour="exam-subject"]',
       popover: {
-        title: 'Select Subject, Chapter & Topic',
+        title: 'Class 8 Science — Currently Available',
         description:
-          'Pick a subject, then choose a chapter from your textbook and a specific topic. The AI will generate questions based on the actual curriculum content.',
+          'ShikkhaAI currently covers Class 8 Science curriculum (Bangladesh NCTB). Pick a subject, chapter, and topic — the AI generates questions from actual textbook content. More classes and subjects are coming soon!',
         side: 'right',
         align: 'start',
       },
